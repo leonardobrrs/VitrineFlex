@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { StoreHeader } from '../components/layout/StoreHeader';
 import { StoreFooter } from '../components/layout/StoreFooter';
+import { applyStoreTheme } from '../services/theme';
 import {
   Sparkles,
   ArrowRight,
@@ -14,6 +15,10 @@ import {
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
+  useEffect(() => {
+    applyStoreTheme('neutral');
+  }, []);
+
   const stores = [
     {
       slug: 'vitrine-moda',

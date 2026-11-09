@@ -114,7 +114,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   useEffect(() => {
-    loadFixture();
+    const path = window.location.pathname;
+    const match = path.match(/\/loja\/([^/]+)/);
+    if (match && match[1]) {
+      loadStoreBySlug(match[1]);
+    } else {
+      loadFixture();
+    }
   }, []);
 
   const hasFeature = (featureName: string): boolean => {

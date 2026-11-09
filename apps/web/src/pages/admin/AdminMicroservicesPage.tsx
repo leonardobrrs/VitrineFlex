@@ -15,13 +15,13 @@ interface ServiceArchitectureInfo {
 const ARCHITECTURE_SPEC: ServiceArchitectureInfo[] = [
   { port: 8000, name: 'API Gateway', role: 'Ponto único de entrada, roteamento reverso, sanitização de cabeçalhos e validação JWT', database: 'Sem banco (stateless)', endpoints: ['/api/v1/system/services', '/api/v1/*'] },
   { port: 8001, name: 'Auth Service', role: 'Gestão de identidades, registro, emissão e validação de tokens JWT', database: 'data/auth.db', endpoints: ['/api/v1/auth/login', '/api/v1/auth/register', '/api/v1/auth/me'] },
-  { port: 8002, name: 'Catalog Service', role: 'Gestão de catálogo, produtos, variantes de vestuário, specs de tech e metadados de livros', database: 'data/catalog.db', endpoints: ['/api/v1/catalog/stores/{id}/products', '/api/v1/catalog/alerts/stock'] },
-  { port: 8003, name: 'Cart Service', role: 'Carrinho de compras por sessão/usuário e cálculo dinâmico de subtotais', database: 'data/cart.db', endpoints: ['/api/v1/cart', '/api/v1/cart/items'] },
-  { port: 8004, name: 'Orders Service', role: 'Orquestrador do ciclo de vida de pedidos e coordenador da Saga coreografada', database: 'data/orders.db', endpoints: ['/api/v1/orders', '/api/v1/orders/{id}'] },
-  { port: 8005, name: 'Payments Service', role: 'Simulação de pagamentos (PIX, Cartão), regras de idempotência e compensação', database: 'data/payments.db', endpoints: ['/api/v1/payments/process'] },
-  { port: 8006, name: 'Shipping Service', role: 'Cálculo de frete, prazos estimados de entrega e opções de retirada em loja', database: 'data/shipping.db', endpoints: ['/api/v1/shipping/quote'] },
-  { port: 8007, name: 'Recommendation Service', role: 'Motor de recomendações explicáveis por afinidade de categoria e popularidade', database: 'data/recommendations.db', endpoints: ['/api/v1/recommendations/{store_id}', '/api/v1/recommendations/interactions'] },
-  { port: 8008, name: 'LPS Config Service', role: 'Engenharia de domínio, validação CTC, cadastro de vitrines e ProductManifest', database: 'data/lps_config.db', endpoints: ['/api/v1/lps/stores', '/api/v1/lps/validate', '/api/v1/lps/features'] },
+  { port: 8002, name: 'LPS Config Service', role: 'Engenharia de domínio, validação CTC, cadastro de vitrines e ProductManifest', database: 'data/lps_config.db', endpoints: ['/api/v1/lps/stores', '/api/v1/lps/validate', '/api/v1/lps/features'] },
+  { port: 8003, name: 'Catalog Service', role: 'Gestão de catálogo, produtos, variantes de vestuário, specs de tech e metadados de livros', database: 'data/catalog.db', endpoints: ['/api/v1/catalog/stores/{id}/products', '/api/v1/catalog/alerts/stock'] },
+  { port: 8004, name: 'Cart Service', role: 'Carrinho de compras por sessão/usuário e cálculo dinâmico de subtotais', database: 'data/cart.db', endpoints: ['/api/v1/cart', '/api/v1/cart/items'] },
+  { port: 8005, name: 'Orders Service', role: 'Orquestrador do ciclo de vida de pedidos e coordenador da Saga coreografada', database: 'data/orders.db', endpoints: ['/api/v1/orders', '/api/v1/orders/{id}'] },
+  { port: 8006, name: 'Payments Service', role: 'Simulação de pagamentos (PIX, Cartão), regras de idempotência e compensação', database: 'data/payments.db', endpoints: ['/api/v1/payments/process'] },
+  { port: 8007, name: 'Shipping Service', role: 'Cálculo de frete, prazos estimados de entrega e opções de retirada em loja', database: 'data/shipping.db', endpoints: ['/api/v1/shipping/quote'] },
+  { port: 8008, name: 'Recommendation Service', role: 'Motor de recomendações explicáveis por afinidade de categoria e popularidade', database: 'data/recommendations.db', endpoints: ['/api/v1/recommendations/{store_id}', '/api/v1/recommendations/interactions'] },
 ];
 
 export const AdminMicroservicesPage: React.FC = () => {

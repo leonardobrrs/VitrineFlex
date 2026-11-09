@@ -14,13 +14,13 @@ interface DatabaseSpec {
 
 const DATABASES: DatabaseSpec[] = [
   { name: 'Auth Database', file: 'data/auth.db', service: 'Auth Service', port: 8001, tables: ['users', 'user_preferences', 'blacklisted_tokens'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Apenas Auth Service acessa)' },
-  { name: 'Catalog Database', file: 'data/catalog.db', service: 'Catalog Service', port: 8002, tables: ['products', 'variants', 'product_attributes', 'stock_alerts'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Apenas Catalog Service acessa)' },
-  { name: 'Cart Database', file: 'data/cart.db', service: 'Cart Service', port: 8003, tables: ['carts', 'cart_items'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Apenas Cart Service acessa)' },
-  { name: 'Orders Database', file: 'data/orders.db', service: 'Orders Service', port: 8004, tables: ['orders', 'order_items', 'order_status_history', 'saga_states'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Orquestrador da Saga)' },
-  { name: 'Payments Database', file: 'data/payments.db', service: 'Payments Service', port: 8005, tables: ['payments', 'transactions', 'idempotency_keys'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Idempotência segura)' },
-  { name: 'Shipping Database', file: 'data/shipping.db', service: 'Shipping Service', port: 8006, tables: ['shipping_quotes', 'fulfillment_options'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Apenas Shipping Service acessa)' },
-  { name: 'Recommendations Database', file: 'data/recommendations.db', service: 'Recommendation Service', port: 8007, tables: ['user_interactions', 'product_scores'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Consultas agregadas indexadas)' },
-  { name: 'LPS Config Database', file: 'data/lps_config.db', service: 'LPS Config Service', port: 8008, tables: ['stores', 'product_manifests', 'features_catalog'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Fonte canônica dos manifestos)' },
+  { name: 'LPS Config Database', file: 'data/lps_config.db', service: 'LPS Config Service', port: 8002, tables: ['stores', 'product_manifests', 'features_catalog'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Fonte canônica dos manifestos)' },
+  { name: 'Catalog Database', file: 'data/catalog.db', service: 'Catalog Service', port: 8003, tables: ['products', 'variants', 'product_attributes', 'stock_alerts'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Apenas Catalog Service acessa)' },
+  { name: 'Cart Database', file: 'data/cart.db', service: 'Cart Service', port: 8004, tables: ['carts', 'cart_items'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Apenas Cart Service acessa)' },
+  { name: 'Orders Database', file: 'data/orders.db', service: 'Orders Service', port: 8005, tables: ['orders', 'order_items', 'order_status_history', 'saga_states'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Orquestrador da Saga)' },
+  { name: 'Payments Database', file: 'data/payments.db', service: 'Payments Service', port: 8006, tables: ['payments', 'transactions', 'idempotency_keys'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Idempotência segura)' },
+  { name: 'Shipping Database', file: 'data/shipping.db', service: 'Shipping Service', port: 8007, tables: ['shipping_quotes', 'fulfillment_options'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Apenas Shipping Service acessa)' },
+  { name: 'Recommendations Database', file: 'data/recommendations.db', service: 'Recommendation Service', port: 8008, tables: ['user_interactions', 'product_scores'], mode: 'WAL (Write-Ahead Logging)', isolation: 'Completo (Consultas agregadas indexadas)' },
 ];
 
 export const AdminDatabasesPage: React.FC = () => {
