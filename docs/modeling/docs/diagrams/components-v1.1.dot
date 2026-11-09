@@ -1,0 +1,19 @@
+digraph Components {
+  graph [rankdir=TB, bgcolor="white", pad="0.25", nodesep="0.32", ranksep="0.45", fontname="Arial", label="Componentes Reutilizáveis e Variabilidade — VitrineFlex", labelloc=t, fontsize=19];
+  node [shape=box, style="rounded,filled", fillcolor="#F4F7FB", color="#50627A", fontname="Arial", fontsize=9, margin="0.12,0.08"];
+  edge [color="#596579", fontname="Arial", fontsize=8, arrowsize=0.7];
+  shell [label="Storefront Shell\ncomum aos produtos", fillcolor="#DDEBFF", penwidth=2];
+  common [label="Componentes de comércio reutilizados\nProductCard • ProductGrid • PriceDisplay\nCartDrawer • CartSummary • CheckoutSteps", fillcolor="#D9F2E6"];
+  extension [label="Ponto de extensão: ProductAttributesPanel", fillcolor="#FFF0CE"];
+  fashion [label="Moda\nFashionVariantSelector\nTamanho • Cor • SKU", fillcolor="#FCE7E7"];
+  tech [label="Tecnologia\nTechnicalSpecificationsTable\nComparador (feature opcional)", fillcolor="#EAE2FF"];
+  books [label="Livros\nBookMetadataPanel\nISBN • Autor • Editora", fillcolor="#E6F4EA"];
+  opt [label="Slots opcionais do MVP", fillcolor="#FFF0CE"];
+  fav [label="FavoritesSlot\nFeature favorites"];
+  compare [label="ProductComparisonSlot\nFeature product_comparison\nSomente TECH"];
+  backend [label="Reúso técnico no backend\npython-common: schemas de erro, contexto,\ncache de manifestos, logs e cliente HTTP", fillcolor="#F5F5F5"];
+  shell -> common -> extension;
+  extension -> fashion; extension -> tech; extension -> books;
+  common -> opt; opt -> fav; opt -> compare;
+  backend -> shell [style=dashed, label="contratos / contexto", dir=both];
+}

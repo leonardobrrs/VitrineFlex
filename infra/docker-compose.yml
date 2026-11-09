@@ -1,0 +1,209 @@
+services:
+  api-gateway:
+    build:
+      context: ..
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: vitrineflex-api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - API_GATEWAY_HOST=0.0.0.0
+      - API_GATEWAY_PORT=8000
+      - AUTH_SERVICE_URL=http://auth-service:8001
+      - LPS_CONFIG_SERVICE_URL=http://lps-config-service:8002
+      - CATALOG_SERVICE_URL=http://catalog-service:8003
+      - CART_SERVICE_URL=http://cart-service:8004
+      - ORDERS_SERVICE_URL=http://orders-service:8005
+      - PAYMENTS_SERVICE_URL=http://payments-service:8006
+      - SHIPPING_SERVICE_URL=http://shipping-service:8007
+      - RECOMMENDATION_SERVICE_URL=http://recommendation-service:8008
+      - JWT_SECRET_KEY=dev-jwt-secret-key-vitrineflex-ufal-2026-very-secure
+      - INTERNAL_SERVICE_KEY=dev-internal-service-token-vitrineflex-ufal-2026
+    networks:
+      - vitrineflex-network
+    depends_on:
+      - auth-service
+      - lps-config-service
+      - catalog-service
+
+  auth-service:
+    build:
+      context: ..
+      dockerfile: services/auth-service/Dockerfile
+    container_name: vitrineflex-auth-service
+    ports:
+      - "8001:8001"
+    environment:
+      - ENVIRONMENT=development
+      - AUTH_SERVICE_HOST=0.0.0.0
+      - AUTH_SERVICE_PORT=8001
+      - DB_STORAGE_DIR=/app/data
+      - JWT_SECRET_KEY=dev-jwt-secret-key-vitrineflex-ufal-2026-very-secure
+      - INTERNAL_SERVICE_KEY=dev-internal-service-token-vitrineflex-ufal-2026
+    volumes:
+      - auth-data:/app/data
+    networks:
+      - vitrineflex-network
+
+  lps-config-service:
+    build:
+      context: ..
+      dockerfile: services/lps-config-service/Dockerfile
+    container_name: vitrineflex-lps-config-service
+    ports:
+      - "8002:8002"
+    environment:
+      - ENVIRONMENT=development
+      - LPS_CONFIG_SERVICE_HOST=0.0.0.0
+      - LPS_CONFIG_SERVICE_PORT=8002
+      - DB_STORAGE_DIR=/app/data
+      - JWT_SECRET_KEY=dev-jwt-secret-key-vitrineflex-ufal-2026-very-secure
+      - INTERNAL_SERVICE_KEY=dev-internal-service-token-vitrineflex-ufal-2026
+    volumes:
+      - lps-data:/app/data
+    networks:
+      - vitrineflex-network
+
+  catalog-service:
+    build:
+      context: ..
+      dockerfile: services/catalog-service/Dockerfile
+    container_name: vitrineflex-catalog-service
+    ports:
+      - "8003:8003"
+    environment:
+      - ENVIRONMENT=development
+      - CATALOG_SERVICE_HOST=0.0.0.0
+      - CATALOG_SERVICE_PORT=8003
+      - LPS_CONFIG_SERVICE_URL=http://lps-config-service:8002
+      - DB_STORAGE_DIR=/app/data
+      - JWT_SECRET_KEY=dev-jwt-secret-key-vitrineflex-ufal-2026-very-secure
+      - INTERNAL_SERVICE_KEY=dev-internal-service-token-vitrineflex-ufal-2026
+    volumes:
+      - catalog-data:/app/data
+    networks:
+      - vitrineflex-network
+    depends_on:
+      - lps-config-service
+
+  cart-service:
+    build:
+      context: ..
+      dockerfile: services/cart-service/Dockerfile
+    container_name: vitrineflex-cart-service
+    ports:
+      - "8004:8004"
+    environment:
+      - ENVIRONMENT=development
+      - CART_SERVICE_HOST=0.0.0.0
+      - CART_SERVICE_PORT=8004
+      - CATALOG_SERVICE_URL=http://catalog-service:8003
+      - DB_STORAGE_DIR=/app/data
+      - JWT_SECRET_KEY=dev-jwt-secret-key-vitrineflex-ufal-2026-very-secure
+      - INTERNAL_SERVICE_KEY=dev-internal-service-token-vitrineflex-ufal-2026
+    volumes:
+      - cart-data:/app/data
+    networks:
+      - vitrineflex-network
+    depends_on:
+      - catalog-service
+
+  orders-service:
+    build:
+      context: ..
+      dockerfile: services/orders-service/Dockerfile
+    container_name: vitrineflex-orders-service
+    ports:
+      - "8005:8005"
+    environment:
+      - ENVIRONMENT=development
+      - ORDERS_SERVICE_HOST=0.0.0.0
+      - ORDERS_SERVICE_PORT=8005
+      - CATALOG_SERVICE_URL=http://catalog-service:8003
+      - CART_SERVICE_URL=http://cart-service:8004
+      - PAYMENTS_SERVICE_URL=http://payments-service:8006
+      - SHIPPING_SERVICE_URL=http://shipping-service:8007
+      - DB_STORAGE_DIR=/app/data
+      - JWT_SECRET_KEY=dev-jwt-secret-key-vitrineflex-ufal-2026-very-secure
+      - INTERNAL_SERVICE_KEY=dev-internal-service-token-vitrineflex-ufal-2026
+    volumes:
+      - orders-data:/app/data
+    networks:
+      - vitrineflex-network
+    depends_on:
+      - catalog-service
+      - cart-service
+      - payments-service
+      - shipping-service
+
+  payments-service:
+    build:
+      context: ..
+      dockerfile: services/payments-service/Dockerfile
+    container_name: vitrineflex-payments-service
+    ports:
+      - "8006:8006"
+    environment:
+      - ENVIRONMENT=development
+      - PAYMENTS_SERVICE_HOST=0.0.0.0
+      - PAYMENTS_SERVICE_PORT=8006
+      - LPS_CONFIG_SERVICE_URL=http://lps-config-service:8002
+      - DB_STORAGE_DIR=/app/data
+      - JWT_SECRET_KEY=dev-jwt-secret-key-vitrineflex-ufal-2026-very-secure
+      - INTERNAL_SERVICE_KEY=dev-internal-service-token-vitrineflex-ufal-2026
+    volumes:
+      - payments-data:/app/data
+    networks:
+      - vitrineflex-network
+    depends_on:
+      - lps-config-service
+
+  shipping-service:
+    build:
+      context: ..
+      dockerfile: services/shipping-service/Dockerfile
+    container_name: vitrineflex-shipping-service
+    ports:
+      - "8007:8007"
+    environment:
+      - ENVIRONMENT=development
+      - SHIPPING_SERVICE_HOST=0.0.0.0
+      - SHIPPING_SERVICE_PORT=8007
+      - LPS_CONFIG_SERVICE_URL=http://lps-config-service:8002
+      - DB_STORAGE_DIR=/app/data
+      - JWT_SECRET_KEY=dev-jwt-secret-key-vitrineflex-ufal-2026-very-secure
+      - INTERNAL_SERVICE_KEY=dev-internal-service-token-vitrineflex-ufal-2026
+    volumes:
+      - shipping-data:/app/data
+    networks:
+      - vitrineflex-network
+    depends_on:
+      - lps-config-service
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    container_name: vitrineflex-web
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_GATEWAY_URL=http://localhost:8000
+    networks:
+      - vitrineflex-network
+    depends_on:
+      - api-gateway
+
+networks:
+  vitrineflex-network:
+    driver: bridge
+
+volumes:
+  auth-data:
+  lps-data:
+  catalog-data:
+  cart-data:
+  orders-data:
+  payments-data:
+  shipping-data:

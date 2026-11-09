@@ -1,0 +1,94 @@
+graph TD
+    %% ==========================================
+    %% VITRINEFLEX — MODELO FORMAL DE FEATURES (v1.1.3)
+    %% Notação:
+    %% [M] Retângulo com borda dupla: Obrigatório (Mandatory)
+    %% (O) Retângulo com cantos arredondados: Opcional (Optional)
+    %% <XOR> Losango / Subgrafo alternativo exclusivo (1 de N)
+    %% {OR} Hexágono / Subgrafo alternativo inclusivo (1..N de N)
+    %% Linha tracejada vermelha -.->|excludes|: Exclusão mútua
+    %% Linha tracejada verde ==>|requires|: Dependência mandatória
+    %% ==========================================
+
+    ROOT["VitrineFlex LPS [M]"]
+
+    %% Grupos Principais
+    ROOT --> CORE["store_core: Núcleo & Manifesto [M]"]
+    ROOT --> SEGMENT["Segmento Comercial &lt;XOR&gt; [M]"]
+    ROOT --> PAYMENT["Métodos de Pagamento {OR} [M]"]
+    ROOT --> SHIPPING["Modalidades de Atendimento {OR} [M]"]
+    ROOT --> OPT_FEATURES["Features Opcionais Transversais (O)"]
+    ROOT --> FUTURE_EXT["Extensões Futuras (Fora do MVP)"]
+
+    %% Core Features (store_core)
+    CORE --> F_AUTH["auth: Autenticação & Perfis [M]"]
+    CORE --> F_CATALOG["catalog: Catálogo & Busca [M]"]
+    CORE --> F_CART["cart: Carrinho de Compras [M]"]
+    CORE --> F_ORDERS["orders: Gestão de Pedidos [M]"]
+    CORE --> F_CHECKOUT["checkout: Checkout Idempotente [M]"]
+    CORE --> F_REC["recommendations: Recomendação Personalizada [M]"]
+
+    %% Segmentos (XOR)
+    SEGMENT --> SEG_FASHION["Moda (FASHION)"]
+    SEGMENT --> SEG_TECH["Tecnologia (TECH)"]
+    SEGMENT --> SEG_BOOKS["Livros (BOOKS)"]
+
+    %% Features de Moda (M-Fashion)
+    SEG_FASHION --> F_SIZE_GRID["size_grid: Grade de Tamanhos [M-Fashion]"]
+    SEG_FASHION --> F_COLOR_VAR["color_variants: Variações de Cor [M-Fashion]"]
+    SEG_FASHION --> F_SKU_VAR["variant_sku: SKU por Variante [M-Fashion]"]
+
+    %% Features de Tecnologia (M-Tech e Opcional Exclusiva)
+    SEG_TECH --> F_TECH_SPECS["technical_specs: Especificações Técnicas [M-Tech]"]
+    SEG_TECH --> F_WARRANTY["warranty_info: Informações de Garantia [M-Tech]"]
+    SEG_TECH --> F_COMPARISON["product_comparison: Comparação de Produtos (O-Tech)"]
+
+    %% Features de Livros (M-Books)
+    SEG_BOOKS --> F_ISBN["isbn: ISBN [M-Books]"]
+    SEG_BOOKS --> F_AUTHOR["author: Autor [M-Books]"]
+    SEG_BOOKS --> F_PUBLISHER["publisher: Editora [M-Books]"]
+    SEG_BOOKS --> F_GENRE["literary_genre: Gênero Literário [M-Books]"]
+    SEG_BOOKS --> F_EDITION["edition: Edição [M-Books]"]
+
+    %% Métodos de Pagamento (OR)
+    PAYMENT --> PAY_PIX["payment_pix: PIX Simulado (O)"]
+    PAYMENT --> PAY_CARD["payment_card: Cartão de Crédito Simulado (O)"]
+    PAYMENT --> PAY_BOLETO["payment_boleto: Boleto Simulado (O)"]
+
+    %% Modalidades de Atendimento (OR)
+    SHIPPING --> SHIP_DELIVERY["fulfillment_delivery: Entrega em Domicílio (O)"]
+    SHIPPING --> SHIP_PICKUP["fulfillment_pickup: Retirada no Local (O)"]
+
+    %% Features Opcionais Transversais do MVP
+    OPT_FEATURES --> F_FAVORITES["favorites: Favoritos de Produtos (O)"]
+
+    %% Extensões Futuras (Bloqueadas no MVP)
+    FUTURE_EXT -.-> F_REVIEWS["reviews: Avaliações de Produtos [Futuro]"]
+    FUTURE_EXT -.-> F_COUPONS["coupons: Cupons de Desconto [Futuro]"]
+
+    %% Restrições Cross-Tree (Requires)
+    F_FAVORITES ==>|requires| F_AUTH
+    F_COMPARISON ==>|requires| SEG_TECH
+    F_CHECKOUT ==>|requires| F_CART
+    F_CHECKOUT ==>|requires| F_ORDERS
+    F_CHECKOUT ==>|requires| PAYMENT
+
+    %% Restrições Cross-Tree (Excludes)
+    F_COMPARISON -.->|excludes| SEG_FASHION
+    F_COMPARISON -.->|excludes| SEG_BOOKS
+    SEG_FASHION -.->|excludes| SEG_TECH
+    SEG_FASHION -.->|excludes| SEG_BOOKS
+    SEG_TECH -.->|excludes| SEG_BOOKS
+
+    %% Classes de Estilo
+    classDef mandatory fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff;
+    classDef optional fill:#065f46,stroke:#10b981,stroke-width:2px,color:#ffffff;
+    classDef xorGroup fill:#78350f,stroke:#f59e0b,stroke-width:2px,color:#ffffff;
+    classDef orGroup fill:#581c87,stroke:#a855f7,stroke-width:2px,color:#ffffff;
+    classDef future fill:#374151,stroke:#9ca3af,stroke-width:1px,stroke-dasharray: 5 5,color:#d1d5db;
+
+    class ROOT,CORE,F_AUTH,F_CATALOG,F_CART,F_ORDERS,F_CHECKOUT,F_REC mandatory;
+    class SEG_FASHION,SEG_TECH,SEG_BOOKS,F_SIZE_GRID,F_COLOR_VAR,F_SKU_VAR,F_TECH_SPECS,F_WARRANTY,F_ISBN,F_AUTHOR,F_PUBLISHER,F_GENRE,F_EDITION xorGroup;
+    class PAYMENT,SHIPPING,PAY_PIX,PAY_CARD,PAY_BOLETO,SHIP_DELIVERY,SHIP_PICKUP orGroup;
+    class OPT_FEATURES,F_FAVORITES,F_COMPARISON optional;
+    class FUTURE_EXT,F_REVIEWS,F_COUPONS future;

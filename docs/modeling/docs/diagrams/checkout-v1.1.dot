@@ -1,0 +1,37 @@
+digraph Checkout {
+  graph [rankdir=TB, bgcolor="white", pad="0.28", nodesep="0.22", ranksep="0.28", fontname="Arial", label="Checkout — baixa atômica, idempotência e compensação", labelloc=t, fontsize=18];
+  node [shape=box, style="rounded,filled", fillcolor="#F4F7FB", color="#50627A", fontname="Arial", fontsize=8, margin="0.11,0.07"];
+  edge [color="#596579", fontname="Arial", fontsize=7, arrowsize=0.65];
+  start [label="Cliente envia checkout\nIdempotency-Key + X-Store-ID", fillcolor="#DDEBFF"];
+  idem [label="Orders verifica a chave\njá processada?", shape=diamond, fillcolor="#FFF0CE"];
+  old [label="Retorna resultado\nanterior sem repetir efeitos"];
+  validate [label="Valida carrinho, preço, produto\ne cotação de entrega"];
+  order [label="Cria pedido PENDING_PAYMENT\n+ snapshots + manifest_version"];
+  stock [label="Catalog: decremento atômico\n+ InventoryMovement idempotente", fillcolor="#D9F2E6"];
+  enough [label="Estoque suficiente?", shape=diamond, fillcolor="#FFF0CE"];
+  failstock [label="STOCK_REJECTED\nSem chamada a Payments", fillcolor="#FCE7E7"];
+  pay [label="Payments: simulação idempotente\nmesma chave em retries", fillcolor="#DDEBFF"];
+  result [label="Resultado definitivo?", shape=diamond, fillcolor="#FFF0CE"];
+  pending [label="PAYMENT_PENDING_CONFIRMATION\nMantém estoque baixado; consulta\nPayments com a mesma chave", fillcolor="#FFF0CE"];
+  approved [label="Pagamento aprovado?", shape=diamond, fillcolor="#FFF0CE"];
+  paid [label="Orders = PAID\nLimpa carrinho\nRegistra interação de compra", fillcolor="#D9F2E6"];
+  refund [label="Catalog: restauração\nidempotente do estoque", fillcolor="#FCE7E7"];
+  restored [label="Restauração concluída?", shape=diamond, fillcolor="#FFF0CE"];
+  cancelled [label="PAYMENT_FAILED\nEstoque restaurado", fillcolor="#F4F7FB"];
+  comp [label="COMPENSATION_PENDING\nLog + retry/reconciliação", fillcolor="#FCE7E7"];
+  start -> idem;
+  idem -> old [label="Sim"];
+  idem -> validate [label="Não"];
+  validate -> order -> stock -> enough;
+  enough -> failstock [label="Não"];
+  enough -> pay [label="Sim"];
+  pay -> result;
+  result -> approved [label="Sim"];
+  result -> pending [label="Não: timeout/ambíguo"];
+  pending -> pay [label="Consultar / repetir mesma chave"];
+  approved -> paid [label="Sim"];
+  approved -> refund [label="Não: recusa definitiva"];
+  refund -> restored;
+  restored -> cancelled [label="Sim"];
+  restored -> comp [label="Não"];
+}

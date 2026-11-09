@@ -1,0 +1,14 @@
+digraph Derivation {
+  graph [rankdir=LR, bgcolor="white", pad="0.3", nodesep="0.35", ranksep="0.45", fontname="Arial", label="Derivação de Produtos — VitrineFlex", labelloc=t, fontsize=20];
+  node [shape=box, style="rounded,filled", fillcolor="#F4F7FB", color="#50627A", fontname="Arial", fontsize=9, margin="0.12,0.08"];
+  edge [color="#596579", fontname="Arial", fontsize=8, arrowsize=0.7];
+  admin [label="Administrador LPS\nSeleciona features", fillcolor="#DDEBFF"];
+  validator [label="LPS Configuration\nValida Feature Model\nrequires / excludes / XOR", fillcolor="#FFF0CE"];
+  manifest [label="ProductManifest\nstore_id • slug • segment\nfeatures • theme • payment • delivery", fillcolor="#D9F2E6"];
+  runtime [label="Runtime compartilhado\nStorefront Shell + API Gateway\nMicrosserviços e bancos isolados"];
+  moda [label="Vitrine Moda\nVariantes tamanho/cor", fillcolor="#FCE7E7"];
+  tech [label="Vitrine Tech\nSpecs + Comparação", fillcolor="#EAE2FF"];
+  books [label="Vitrine Books\nISBN + Autor + Editora", fillcolor="#E6F4EA"];
+  admin -> validator -> manifest -> runtime;
+  runtime -> moda; runtime -> tech; runtime -> books;
+}

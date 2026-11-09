@@ -1,0 +1,84 @@
+flowchart TB
+    %% ==========================================
+    %% VITRINEFLEX — COMPOSIÇÃO DE COMPONENTES POR PRODUTO DERIVADO (v1.1.3)
+    %% ==========================================
+
+    subgraph MANIFESTS["Product Manifests Ativos (lps.db)"]
+        M_MODA["Manifesto: Vitrine Moda\nsegment: FASHION\nsize_grid: true, color_variants: true, variant_sku: true\nfavorites: true, product_comparison: false\npayments: PIX, CARD | shipping: DELIVERY, PICKUP"]
+        M_TECH["Manifesto: Vitrine Tech\nsegment: TECH\ntechnical_specs: true, warranty_info: true\nfavorites: true, product_comparison: true\npayments: PIX, CARD, BOLETO | shipping: DELIVERY"]
+        M_BOOKS["Manifesto: Vitrine Books\nsegment: BOOKS\nisbn: true, author: true, publisher: true, genre: true, edition: true\nfavorites: false, product_comparison: false\npayments: PIX, BOLETO | shipping: DELIVERY, PICKUP"]
+    end
+
+    subgraph FE_CORE["Componentes Frontend Comuns (store_core)"]
+        CORE_SHELL["StorefrontShell.tsx"]
+        CORE_GRID["ProductGrid.tsx"]
+        CORE_CARD["ProductCard.tsx"]
+        CORE_CART["CartDrawer.tsx"]
+        CORE_CHK["CheckoutStepper.tsx"]
+        CORE_REC["RecommendationCarousel.tsx"]
+    end
+
+    subgraph FE_VAR_MODA["Composição Frontend: Vitrine Moda"]
+        MODA_VAR["FashionVariantSelector.tsx (Tamanho / Cor)"]
+        MODA_PRICE["PriceRangeDisplay.tsx"]
+    end
+
+    subgraph FE_VAR_TECH["Composição Frontend: Vitrine Tech"]
+        TECH_SPECS["TechnicalSpecificationsTable.tsx"]
+        TECH_COMP_BTN["AddToCompareButton.tsx"]
+        TECH_COMP_MODAL["ProductComparisonModal.tsx"]
+        TECH_WARRANTY["WarrantyBadge.tsx"]
+    end
+
+    subgraph FE_VAR_BOOKS["Composição Frontend: Vitrine Books"]
+        BOOK_META["BookMetadataPanel.tsx (ISBN, Autor, Editora, Gênero)"]
+        BOOK_PREVIEW["BookCoverGallery.tsx"]
+    end
+
+    subgraph FE_SLOTS["Slots de Features Opcionais"]
+        SLOT_FAV["FavoriteHeartButton.tsx"]
+        SLOT_COMP["ProductComparisonSlot.tsx"]
+    end
+
+    subgraph BE_ENFORCE["Enforcement no Backend (HTTP 403 / 422)"]
+        BE_MODA_RULE["Catalog: Valida tamanho/cor obrigatórios para variantes"]
+        BE_TECH_RULE["Catalog: Libera GET /products/compare"]
+        BE_BOOKS_RULE["Catalog: Rejeita chamadas de comparação com 422"]
+        BE_FAV_BLOCK["Catalog: Bloqueia POST /favorites na Vitrine Books (403)"]
+    end
+
+    %% Ligações de Composição para Moda
+    M_MODA --> CORE_SHELL
+    CORE_SHELL --> FE_VAR_MODA
+    M_MODA --> SLOT_FAV
+    M_MODA --> BE_MODA_RULE
+
+    %% Ligações de Composição para Tech
+    M_TECH --> CORE_SHELL
+    CORE_SHELL --> FE_VAR_TECH
+    M_TECH --> SLOT_FAV
+    M_TECH --> SLOT_COMP
+    M_TECH --> BE_TECH_RULE
+
+    %% Ligações de Composição para Books
+    M_BOOKS --> CORE_SHELL
+    CORE_SHELL --> FE_VAR_BOOKS
+    M_BOOKS --> BE_BOOKS_RULE
+    M_BOOKS --> BE_FAV_BLOCK
+
+    %% Estilos
+    classDef manifestStyle fill:#1e3a8a,stroke:#60a5fa,stroke-width:2px,color:#ffffff;
+    classDef coreStyle fill:#0f172a,stroke:#94a3b8,stroke-width:2px,color:#ffffff;
+    classDef modaStyle fill:#831843,stroke:#f472b6,stroke-width:2px,color:#ffffff;
+    classDef techStyle fill:#1e3a5f,stroke:#38bdf8,stroke-width:2px,color:#ffffff;
+    classDef booksStyle fill:#713f12,stroke:#facc15,stroke-width:2px,color:#ffffff;
+    classDef slotStyle fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#ffffff;
+    classDef blockStyle fill:#7f1d1d,stroke:#f87171,stroke-width:2px,color:#ffffff;
+
+    class M_MODA,M_TECH,M_BOOKS manifestStyle;
+    class CORE_SHELL,CORE_GRID,CORE_CARD,CORE_CART,CORE_CHK,CORE_REC coreStyle;
+    class FE_VAR_MODA,MODA_VAR,MODA_PRICE modaStyle;
+    class FE_VAR_TECH,TECH_SPECS,TECH_COMP_BTN,TECH_COMP_MODAL,TECH_WARRANTY techStyle;
+    class FE_VAR_BOOKS,BOOK_META,BOOK_PREVIEW booksStyle;
+    class FE_SLOTS,SLOT_FAV,SLOT_COMP slotStyle;
+    class BE_ENFORCE,BE_MODA_RULE,BE_TECH_RULE,BE_BOOKS_RULE,BE_FAV_BLOCK blockStyle;

@@ -1,0 +1,145 @@
+flowchart TB
+    %% ==========================================
+    %% VITRINEFLEX — ARQUITETURA EM CAMADAS v1.1.3
+    %% ==========================================
+
+    subgraph L1["1. Camada de Apresentação (SPA React + TypeScript — Porta 5173)"]
+        direction TB
+        subgraph SHELL["Storefront Shell Comum & Layout"]
+            HEADER["StoreHeader / SearchBar / CartBadge"]
+            NAV["CategoryNavigation / Breadcrumbs"]
+            FOOTER["StoreFooter / ServiceDiagnosticsBadge"]
+        end
+        subgraph COMPS["Componentes Reutilizáveis de Comércio"]
+            PCARD["ProductCard"]
+            PGRID["ProductGrid"]
+            CART_D["CartDrawer"]
+            CHK_STEP["CheckoutSteps"]
+            REC_CAR["RecommendationCarousel"]
+        end
+        subgraph EXT_POINTS["Pontos de Extensão Variáveis (Extension Points)"]
+            FASH_VAR["FashionVariantSelector (Moda)"]
+            TECH_SPEC["TechnicalSpecificationsTable (Tech)"]
+            BOOK_META["BookMetadataPanel (Livros)"]
+            COMP_SLOT["ProductComparisonSlot (Tech)"]
+            FAV_SLOT["FavoritesSlot (Todos)"]
+        end
+    end
+
+    subgraph L2["2. Camada de Borda e Roteamento (API Gateway FastAPI — Porta 8000)"]
+        direction TB
+        GW_CORE["Roteador Reverso por Prefixos Determinísticos (/api/v1/*)"]
+        GW_SEC["Sanitização: Remove X-Internal-Token & Cabeçalhos Forjados pelo Navegador"]
+        GW_AUTH["Validação JWT & Injeção de Identidade Confiável (X-User-ID, X-User-Role)"]
+        GW_CTX["Validação de Formato UUID de X-Store-ID & Injeção de X-Request-ID"]
+        GW_HLTH["Endpoint Agregador de Estado dos Serviços (/api/v1/system/services)"]
+    end
+
+    subgraph L5["5. Camada de Engenharia de Domínio da LPS"]
+        direction TB
+        LPS_SVC["LPS Configuration Service (:8002)"]
+        FM_ENGINE["Motor de Validação do Feature Model (XOR, OR, Requires, Excludes)"]
+        MANIFEST_REG["Gerador & Repositório de ProductManifest Versionado"]
+        LPS_DB[(lps.db — SQLite WAL)]
+        LPS_SVC --- FM_ENGINE
+        LPS_SVC --- MANIFEST_REG
+        LPS_SVC --> LPS_DB
+    end
+
+    subgraph L3["3. Camada de Aplicação e Negócio (Microsserviços Autônomos FastAPI)"]
+        direction TB
+        AUTH["Auth Service (:8001)\nUsuários, JWT, Perfis, Interesses"]
+        CATALOG["Catalog Service (:8003)\nProdutos, Variantes, Atributos, Estoque, Favoritos"]
+        CART["Cart Service (:8004)\nCarrinhos e Itens (user_id, store_id)"]
+        ORDERS["Orders Service (:8005)\nSaga Checkout, Idempotência, Pedidos"]
+        PAYMENTS["Payments Service (:8006)\nSimulador de Pagamentos (PIX, Card, Boleto)"]
+        SHIPPING["Shipping Service (:8007)\nCálculo Simulado de Frete & Retirada"]
+        REC["Recommendation Service (:8008)\nRanking Explicável, Afinidade, Cold Start"]
+
+        subgraph PKG["Pacote Compartilhado: packages/python-common"]
+            COMMON_CACHE["FeatureManifestProvider (Cache TTL 30s)"]
+            COMMON_SEC["Validador X-Internal-Token & SecurityContext"]
+            COMMON_DB["DatabaseEngineFactory (SQLite WAL busy_timeout=5000)"]
+            COMMON_ERR["Formato Padronizado APIErrorResponse"]
+        end
+    end
+
+    subgraph L4["4. Camada de Persistência (Database-per-Service — SQLite WAL)"]
+        direction TB
+        DB_AUTH[(auth.db)]
+        DB_CAT[(catalog.db)]
+        DB_CART[(cart.db)]
+        DB_ORD[(orders.db)]
+        DB_PAY[(payments.db)]
+        DB_SHIP[(shipping.db)]
+        DB_REC[(recommendations.db)]
+    end
+
+    %% Conexões entre Apresentação e Gateway
+    SHELL -->|HTTP / JSON com X-Store-ID| GW_CORE
+    COMPS -->|HTTP / JSON com X-Store-ID| GW_CORE
+    EXT_POINTS -->|HTTP / JSON com X-Store-ID| GW_CORE
+
+    %% Inicialização da LPS
+    SHELL -.->|1. GET /api/v1/lps/stores/:slug/manifest| GW_CORE
+    GW_CORE -.->|Encaminha /api/v1/lps/*| LPS_SVC
+
+    %% Roteamento do Gateway para Microsserviços
+    GW_CORE -->|/api/v1/auth/*| AUTH
+    GW_CORE -->|/api/v1/catalog/* & /favorites & /compare| CATALOG
+    GW_CORE -->|/api/v1/cart/*| CART
+    GW_CORE -->|/api/v1/orders/*| ORDERS
+    GW_CORE -->|/api/v1/shipping/*| SHIPPING
+    GW_CORE -->|/api/v1/recommendations/* & /interactions| REC
+
+    %% Comunicações Internas Serviço-a-Serviço (via rede Docker privada com X-Internal-Token)
+    CART -->|GET /internal/v1/catalog/products/:id| CATALOG
+    ORDERS -->|GET /internal/v1/cart/:store_id/:user_id| CART
+    ORDERS -->|DELETE /internal/v1/cart/:store_id/:user_id| CART
+    ORDERS -->|POST /internal/v1/inventory/decrement| CATALOG
+    ORDERS -->|POST /internal/v1/inventory/restore| CATALOG
+    ORDERS -->|POST /internal/v1/payments/simulate| PAYMENTS
+    ORDERS -->|POST /internal/v1/recommendations/interactions| REC
+    REC -->|GET /internal/v1/catalog/stores/:id/products/active| CATALOG
+    REC -->|GET /internal/v1/auth/users/:id/preferences| AUTH
+
+    %% Consultas de Manifesto para Validação de Features/Opções (com Cache TTL 30s)
+    CATALOG -->|GET /internal/v1/lps/stores/:id/manifest| LPS_SVC
+    ORDERS -->|GET /internal/v1/lps/stores/:id/manifest| LPS_SVC
+    PAYMENTS -->|GET /internal/v1/lps/stores/:id/manifest| LPS_SVC
+    SHIPPING -->|GET /internal/v1/lps/stores/:id/manifest| LPS_SVC
+    CART -->|GET /internal/v1/lps/stores/:id/manifest| LPS_SVC
+
+    %% Ligação dos Microsserviços aos seus Bancos Isolados
+    AUTH --> DB_AUTH
+    CATALOG --> DB_CAT
+    CART --> DB_CART
+    ORDERS --> DB_ORD
+    PAYMENTS --> DB_PAY
+    SHIPPING --> DB_SHIP
+    REC --> DB_REC
+
+    %% Injeção de componentes de python-common
+    PKG -.-> AUTH
+    PKG -.-> CATALOG
+    PKG -.-> CART
+    PKG -.-> ORDERS
+    PKG -.-> PAYMENTS
+    PKG -.-> SHIPPING
+    PKG -.-> REC
+    PKG -.-> LPS_SVC
+
+    %% Estilos
+    classDef pres fill:#1e293b,stroke:#94a3b8,stroke-width:2px,color:#f8fafc;
+    classDef gtw fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+    classDef lps fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#f8fafc;
+    classDef app fill:#1e1b4b,stroke:#a78bfa,stroke-width:2px,color:#f8fafc;
+    classDef db fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#f8fafc;
+    classDef pkg fill:#451a03,stroke:#fbbf24,stroke-width:1px,color:#fef3c7;
+
+    class SHELL,COMPS,EXT_POINTS pres;
+    class GW_CORE,GW_SEC,GW_AUTH,GW_CTX,GW_INT,GW_HLTH gtw;
+    class LPS_SVC,FM_ENGINE,MANIFEST_REG lps;
+    class AUTH,CATALOG,CART,ORDERS,PAYMENTS,SHIPPING,REC app;
+    class DB_AUTH,DB_CAT,DB_CART,DB_ORD,DB_PAY,DB_SHIP,DB_REC,LPS_DB db;
+    class PKG,COMMON_CACHE,COMMON_SEC,COMMON_DB,COMMON_ERR pkg;

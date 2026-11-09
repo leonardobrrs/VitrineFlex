@@ -1,0 +1,141 @@
+flowchart LR
+    %% ==========================================
+    %% VITRINEFLEX — MODELO DE VARIABILIDADE
+    %% Mapeamento entre Pontos de Variação, Variantes e Camadas Afetadas
+    %% ==========================================
+
+    subgraph VP["Pontos de Variação (VP)"]
+        VP1["VP-01: Atributos & Detalhes do Produto\n[Mandatory — 1 de N]"]
+        VP2["VP-02: Mecanismo de Comparação\n[Optional — 0..1]"]
+        VP3["VP-03: Lista de Favoritos\n[Optional — 0..1]"]
+        VP4["VP-04: Meios de Pagamento\n[Mandatory Alternative — 1..N]"]
+        VP5["VP-05: Modalidades de Entrega\n[Mandatory Alternative — 1..N]"]
+        VP6["VP-06: Identidade Visual & Tema\n[Mandatory Parametric]"]
+    end
+
+    subgraph VARIANTS["Variantes Disponíveis"]
+        %% Variantes VP1
+        VAR_FASHION["Variante Moda:\nGrade Tamanhos, Cores, SKU"]
+        VAR_TECH["Variante Tech:\nEspecificações Técnicas, Garantia"]
+        VAR_BOOKS["Variante Livros:\nISBN, Autor, Editora, Gênero"]
+
+        %% Variantes VP2
+        VAR_COMP_ON["Comparador Ativo\n(Exclusivo TECH)"]
+        VAR_COMP_OFF["Comparador Desativado"]
+
+        %% Variantes VP3
+        VAR_FAV_ON["Favoritos Ativo\n(Todos os Segmentos)"]
+        VAR_FAV_OFF["Favoritos Desativado"]
+
+        %% Variantes VP4
+        VAR_PIX["Adaptador PIX Simulado"]
+        VAR_CARD["Adaptador Cartão Simulado"]
+        VAR_BOLETO["Adaptador Boleto Simulado"]
+
+        %% Variantes VP5
+        VAR_DELIV["Adaptador Entrega Domicílio"]
+        VAR_PICK["Adaptador Retirada Local"]
+
+        %% Variantes VP6
+        VAR_THEME["Paleta de Cores & CSS Variables"]
+    end
+
+    subgraph IMPACT_UI["Impacto na Interface (Frontend React)"]
+        UI_PCARD["ProductCard (Reutilizado com badges condicionais)"]
+        UI_DETAIL["ProductDetailPage (Slot de Atributos)"]
+        UI_FASH["FashionVariantSelector.tsx"]
+        UI_TECH["TechnicalSpecificationsTable.tsx"]
+        UI_BOOKS["BookMetadataPanel.tsx"]
+        UI_COMP["ProductComparisonDrawer.tsx & CompareButton"]
+        UI_FAV["FavoriteToggleButton.tsx & FavoritesPage"]
+        UI_PAY["PaymentMethodSelector.tsx"]
+        UI_SHIP["ShippingMethodSelector.tsx"]
+    end
+
+    subgraph IMPACT_BE["Impacto em Regras de Negócio (Microsserviços)"]
+        BE_VAL["LPS Config: Validador de Regras Cross-tree"]
+        BE_CAT["Catalog: Validação de Atributos Tipados por Segmento"]
+        BE_COMP["Catalog: Rota GET /products/compare (Guarda 403)"]
+        BE_FAV["Catalog: Rotas /favorites (Guarda 403)"]
+        BE_PAY["Payments: Validação do Método no Manifesto da Loja"]
+        BE_SHIP["Shipping: Cálculo de Frete / Retirada no Manifesto"]
+    end
+
+    subgraph IMPACT_DATA["Impacto na Persistência (SQLite)"]
+        DB_ATTR["catalog.db: product_attributes (JSON/EAV por segmento)"]
+        DB_VAR["catalog.db: product_variants (SKU, tamanho, cor)"]
+        DB_FAV["catalog.db: product_favorites (user_id, product_id)"]
+        DB_PAY_ATT["payments.db: payment_attempts (payment_method)"]
+        DB_SHIP_CFG["shipping.db: shipping_methods (method_type)"]
+        DB_MAN["lps.db: product_manifests (features JSON, theme)"]
+    end
+
+    %% Ligações VP -> Variantes
+    VP1 --> VAR_FASHION
+    VP1 --> VAR_TECH
+    VP1 --> VAR_BOOKS
+
+    VP2 --> VAR_COMP_ON
+    VP2 --> VAR_COMP_OFF
+
+    VP3 --> VAR_FAV_ON
+    VP3 --> VAR_FAV_OFF
+
+    VP4 --> VAR_PIX
+    VP4 --> VAR_CARD
+    VP4 --> VAR_BOLETO
+
+    VP5 --> VAR_DELIV
+    VP5 --> VAR_PICK
+
+    VP6 --> VAR_THEME
+
+    %% Ligações Variantes -> UI
+    VAR_FASHION --> UI_FASH
+    VAR_TECH --> UI_TECH
+    VAR_BOOKS --> UI_BOOKS
+    VAR_COMP_ON --> UI_COMP
+    VAR_FAV_ON --> UI_FAV
+    VAR_PIX --> UI_PAY
+    VAR_CARD --> UI_PAY
+    VAR_BOLETO --> UI_PAY
+    VAR_DELIV --> UI_SHIP
+    VAR_PICK --> UI_SHIP
+    VAR_THEME --> UI_PCARD
+
+    %% Ligações Variantes -> Backend
+    VAR_FASHION --> BE_CAT
+    VAR_TECH --> BE_CAT
+    VAR_BOOKS --> BE_CAT
+    VAR_COMP_ON --> BE_COMP
+    VAR_FAV_ON --> BE_FAV
+    VAR_PIX --> BE_PAY
+    VAR_CARD --> BE_PAY
+    VAR_BOLETO --> BE_PAY
+    VAR_DELIV --> BE_SHIP
+    VAR_PICK --> BE_SHIP
+
+    %% Ligações Variantes -> Dados
+    VAR_FASHION --> DB_VAR
+    VAR_TECH --> DB_ATTR
+    VAR_BOOKS --> DB_ATTR
+    VAR_FAV_ON --> DB_FAV
+    VAR_PIX --> DB_PAY_ATT
+    VAR_CARD --> DB_PAY_ATT
+    VAR_BOLETO --> DB_PAY_ATT
+    VAR_DELIV --> DB_SHIP_CFG
+    VAR_PICK --> DB_SHIP_CFG
+    VAR_THEME --> DB_MAN
+
+    %% Estilos
+    classDef vpStyle fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#ffffff;
+    classDef varStyle fill:#0f766e,stroke:#14b8a6,stroke-width:2px,color:#ffffff;
+    classDef uiStyle fill:#431407,stroke:#f97316,stroke-width:1px,color:#ffffff;
+    classDef beStyle fill:#312e81,stroke:#818cf8,stroke-width:1px,color:#ffffff;
+    classDef dbStyle fill:#064e3b,stroke:#22c55e,stroke-width:1px,color:#ffffff;
+
+    class VP1,VP2,VP3,VP4,VP5,VP6 vpStyle;
+    class VAR_FASHION,VAR_TECH,VAR_BOOKS,VAR_COMP_ON,VAR_COMP_OFF,VAR_FAV_ON,VAR_FAV_OFF,VAR_PIX,VAR_CARD,VAR_BOLETO,VAR_DELIV,VAR_PICK,VAR_THEME varStyle;
+    class UI_PCARD,UI_DETAIL,UI_FASH,UI_TECH,UI_BOOKS,UI_COMP,UI_FAV,UI_PAY,UI_SHIP uiStyle;
+    class BE_VAL,BE_CAT,BE_COMP,BE_FAV,BE_PAY,BE_SHIP beStyle;
+    class DB_ATTR,DB_VAR,DB_FAV,DB_PAY_ATT,DB_SHIP_CFG,DB_MAN dbStyle;

@@ -1,0 +1,16 @@
+digraph Layers {
+  graph [rankdir=LR, bgcolor="white", pad="0.22", nodesep="0.28", ranksep="0.42", fontname="Arial", label="Arquitetura em Camadas — VitrineFlex", labelloc=t, fontsize=20];
+  node [shape=box, style="rounded,filled", fillcolor="#F4F7FB", color="#50627A", fontname="Arial", fontsize=9, margin="0.13,0.08"];
+  edge [color="#596579", fontname="Arial", fontsize=8, arrowsize=0.75];
+  presentation [label="1. Apresentação\nReact • TypeScript • Storefront Shell\nComponentes comuns + pontos de extensão", fillcolor="#DDEBFF"];
+  gateway [label="2. Acesso / Borda\nAPI Gateway • FastAPI :8000\nJWT • CORS • X-Request-ID • roteamento", fillcolor="#D9F2E6"];
+  services [label="3. Aplicação\nAuth • LPS Configuration • Catalog • Cart\nOrders • Payments • Shipping • Recommendation", fillcolor="#FFF0CE"];
+  domain [label="4. Domínio\nRegras de negócio • Feature Model • Manifesto\nCheckout • Variantes • Recomendação", fillcolor="#EAE2FF"];
+  persistence [label="5. Persistência\nSQLAlchemy Repositories • SQLite por serviço\nWAL • transações curtas • Database-per-Service", fillcolor="#FCE7E7"];
+  cross [label="Preocupações transversais\nAutenticação/autorização • Contexto de loja\nFeature enforcement/cache • Logs • Erros", shape=note, fillcolor="#F5F5F5"];
+  presentation -> gateway -> services -> domain -> persistence;
+  { rank=same; services; cross; }
+  cross -> gateway [style=dashed, arrowhead=none, constraint=false];
+  cross -> services [style=dashed, arrowhead=none, constraint=false];
+  cross -> domain [style=dashed, arrowhead=none, constraint=false];
+}

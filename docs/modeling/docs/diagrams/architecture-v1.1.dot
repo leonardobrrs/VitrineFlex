@@ -1,0 +1,29 @@
+digraph VitrineFlex {
+  graph [rankdir=TB, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.5", fontname="Arial", label="VitrineFlex — Arquitetura lógica v1.1", labelloc=t, fontsize=20];
+  node [shape=box, style="rounded,filled", fillcolor="#F4F7FB", color="#50627A", fontname="Arial", fontsize=10, margin="0.12,0.08"];
+  edge [color="#596579", fontname="Arial", fontsize=8, arrowsize=0.75];
+  user [label="Cliente / Administrador", fillcolor="#E9F2FF"];
+  fe [label="Storefront Web App\nReact + TypeScript + Vite\n:5173", fillcolor="#DDEBFF"];
+  gw [label="API Gateway\nFastAPI :8000", fillcolor="#D9F2E6"];
+  lps [label="LPS Configuration\n:8002", fillcolor="#FFF0CE"];
+  auth [label="Auth\n:8001"];
+  cat [label="Catalog\n:8003"];
+  cart [label="Cart\n:8004"];
+  orders [label="Orders\n:8005"];
+  pay [label="Payments\n:8006"];
+  ship [label="Shipping\n:8007"];
+  rec [label="Recommendation\n:8008"];
+  user -> fe;
+  fe -> gw [label="GET manifest by slug + APIs / X-Store-ID"];
+  gw -> auth; gw -> lps; gw -> cat; gw -> cart; gw -> orders; gw -> pay; gw -> ship; gw -> rec;
+  orders -> cat [style=dashed, label="internal: stock"];
+  orders -> pay [style=dashed, label="internal: payment"];
+  orders -> ship [style=dashed, label="quote"];
+  orders -> rec [style=dashed, label="purchase event"];
+  subgraph cluster_db {
+    label="Database-per-Service — SQLite isolado"; color="#A9B6C6"; style="rounded,dashed"; fontname="Arial"; fontsize=10;
+    node [shape=cylinder, fillcolor="#F7F7F7", fontsize=9];
+    db_auth [label="auth.db"]; db_lps [label="lps.db"]; db_cat [label="catalog.db"]; db_cart [label="cart.db"]; db_orders [label="orders.db"]; db_pay [label="payments.db"]; db_ship [label="shipping.db"]; db_rec [label="recommendations.db"];
+  }
+  auth -> db_auth; lps -> db_lps; cat -> db_cat; cart -> db_cart; orders -> db_orders; pay -> db_pay; ship -> db_ship; rec -> db_rec;
+}

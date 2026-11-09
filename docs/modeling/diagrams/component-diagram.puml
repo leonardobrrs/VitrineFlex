@@ -1,0 +1,190 @@
+@startuml
+!theme plain
+skinparam componentStyle uml2
+skinparam linetype ortho
+skinparam packageBackgroundColor #F8FAFC
+skinparam packageBorderColor #64748B
+skinparam componentBackgroundColor #FFFFFF
+skinparam componentBorderColor #334155
+skinparam databaseBackgroundColor #ECFDF5
+skinparam databaseBorderColor #059669
+
+title VitrineFlex — Diagrama de Componentes de Software v1.1.3 (PlantUML)
+
+package "Cliente & Apresentação (apps/web)" {
+  [Storefront Shell\n(React Router + Layout Comum)] as Shell
+  [Common Commerce Components\n(ProductCard, ProductGrid, CartDrawer)] as CompsCommon
+  [Segment Extension Components\n(FashionVariants, TechSpecs, BookMetadata)] as CompsSegment
+  [Feature Slot Components\n(ProductComparison, Favorites)] as CompsFeatures
+  [TanStack Query HTTP Client] as WebClient
+
+  Shell --> CompsCommon
+  Shell --> CompsSegment
+  Shell --> CompsFeatures
+  CompsCommon --> WebClient
+  CompsSegment --> WebClient
+  CompsFeatures --> WebClient
+}
+
+package "Camada de Borda (services/api-gateway)" {
+  [API Gateway :8000\n(FastAPI Reverse Proxy)] as Gateway
+  interface "HTTP /api/v1/*\n(Public API)" as GatewayAPI
+  Gateway -up- GatewayAPI
+  WebClient ..> GatewayAPI : "JSON over HTTP\n(Bearer JWT + X-Store-ID)"
+}
+
+package "Pacotes Compartilhados (packages/python-common)" {
+  [FeatureManifestProvider\n(Cache TTL 30s)] as CacheProvider
+  [SecurityContext\n(JWT & X-Internal-Token Validator)] as SecContext
+  [DatabaseEngineFactory\n(SQLite WAL + busy_timeout=5000)] as DbFactory
+  [APIErrorResponse Schema] as ErrSchema
+}
+
+package "Serviços de Domínio do Backend (FastAPI)" {
+
+  package "LPS Configuration Service (:8002)" {
+    [LPS Controller & Validator] as LPSComp
+    database "lps.db" as DB_LPS
+    interface "GET /api/v1/lps/stores/:slug/manifest" as LPS_PubAPI
+    interface "GET /internal/v1/lps/stores/:id/manifest" as LPS_IntAPI
+    LPSComp -up- LPS_PubAPI
+    LPSComp -left- LPS_IntAPI
+    LPSComp --> DB_LPS
+  }
+
+  package "Auth Service (:8001)" {
+    [Auth & User Controller] as AuthComp
+    database "auth.db" as DB_Auth
+    interface "POST /api/v1/auth/login" as Auth_PubAPI
+    interface "GET /internal/v1/auth/users/:id/preferences" as Auth_Pref_IntAPI
+    AuthComp -up- Auth_PubAPI
+    AuthComp -right- Auth_Pref_IntAPI
+    AuthComp --> DB_Auth
+  }
+
+  package "Catalog Service (:8003)" {
+    [Catalog & Inventory Controller] as CatalogComp
+    database "catalog.db" as DB_Catalog
+    interface "GET /api/v1/catalog/products" as Cat_PubAPI
+    interface "GET, POST, DELETE /api/v1/catalog/favorites\n(Requer feature favorites: true)" as Cat_Fav_PubAPI
+    interface "GET /api/v1/catalog/products/compare\n(Exclusivo TECH & product_comparison: true)" as Cat_Comp_PubAPI
+    interface "GET /internal/v1/catalog/products/:id" as Cat_Prod_IntAPI
+    interface "GET /internal/v1/catalog/stores/:id/products/active" as Cat_Active_IntAPI
+    interface "POST /internal/v1/inventory/decrement" as Inv_DecAPI
+    interface "POST /internal/v1/inventory/restore" as Inv_RestAPI
+    CatalogComp -up- Cat_PubAPI
+    CatalogComp -up- Cat_Fav_PubAPI
+    CatalogComp -up- Cat_Comp_PubAPI
+    CatalogComp -left- Inv_DecAPI
+    CatalogComp -right- Inv_RestAPI
+    CatalogComp -down- Cat_Prod_IntAPI
+    CatalogComp -down- Cat_Active_IntAPI
+    CatalogComp --> DB_Catalog
+  }
+
+  package "Cart Service (:8004)" {
+    [Cart Controller] as CartComp
+    database "cart.db" as DB_Cart
+    interface "GET /api/v1/cart" as Cart_PubAPI
+    interface "GET /internal/v1/cart/:store_id/:user_id" as Cart_Get_IntAPI
+    interface "DELETE /internal/v1/cart/:store_id/:user_id" as Cart_Del_IntAPI
+    CartComp -up- Cart_PubAPI
+    CartComp -left- Cart_Get_IntAPI
+    CartComp -right- Cart_Del_IntAPI
+    CartComp --> DB_Cart
+  }
+
+  package "Orders Service (:8005)" {
+    [Orders & Checkout Saga Controller\n(CheckoutOperation Idempotency)] as OrdersComp
+    database "orders.db" as DB_Orders
+    interface "POST /api/v1/orders/checkout\n(Header: Idempotency-Key)" as Orders_PubAPI
+    OrdersComp -up- Orders_PubAPI
+    OrdersComp --> DB_Orders
+  }
+
+  package "Payments Service (:8006)" {
+    [Payments Simulation Controller\n(PaymentAttempt Idempotency)] as PayComp
+    database "payments.db" as DB_Pay
+    interface "POST /internal/v1/payments/simulate" as Pay_IntAPI
+    interface "GET /internal/v1/payments/attempts/:idempotency_key" as Pay_Status_IntAPI
+    PayComp -up- Pay_IntAPI
+    PayComp -left- Pay_Status_IntAPI
+    PayComp --> DB_Pay
+  }
+
+  package "Shipping Service (:8007)" {
+    [Shipping & Fulfillment Controller] as ShipComp
+    database "shipping.db" as DB_Ship
+    interface "POST /api/v1/shipping/quote" as Ship_PubAPI
+    ShipComp -up- Ship_PubAPI
+    ShipComp --> DB_Ship
+  }
+
+  package "Recommendation Service (:8008)" {
+    [Recommendation & Affinity Engine] as RecComp
+    database "recommendations.db" as DB_Rec
+    interface "GET /api/v1/recommendations" as Rec_PubAPI
+    interface "POST /api/v1/recommendations/interactions" as Rec_Pub_InterAPI
+    interface "POST /internal/v1/recommendations/interactions" as Rec_IntAPI
+    RecComp -up- Rec_PubAPI
+    RecComp -up- Rec_Pub_InterAPI
+    RecComp -left- Rec_IntAPI
+    RecComp --> DB_Rec
+  }
+}
+
+' Gateway Roteamento Público (com X-Store-ID e JWT confiaveis - sem injetar chave interna)
+Gateway ..> LPS_PubAPI : "Proxy /api/v1/lps/*"
+Gateway ..> Auth_PubAPI : "Proxy /api/v1/auth/*"
+Gateway ..> Cat_PubAPI : "Proxy /api/v1/catalog/*"
+Gateway ..> Cat_Fav_PubAPI : "Proxy GET, POST, DELETE /api/v1/catalog/favorites"
+Gateway ..> Cat_Comp_PubAPI : "Proxy GET /api/v1/catalog/products/compare (Apenas TECH)"
+Gateway ..> Cart_PubAPI : "Proxy /api/v1/cart/*"
+Gateway ..> Orders_PubAPI : "Proxy /api/v1/orders/*"
+Gateway ..> Ship_PubAPI : "Proxy /api/v1/shipping/*"
+Gateway ..> Rec_PubAPI : "Proxy /api/v1/recommendations/*"
+Gateway ..> Rec_Pub_InterAPI : "Proxy /api/v1/recommendations/interactions\n(Registra VIEW do navegador)"
+
+' Comunicações Internas Serviço-a-Serviço (anexam X-Internal-Token de env var na rede privada Docker)
+CartComp ..> Cat_Prod_IntAPI : "Valida produto e preço (X-Internal-Token)"
+OrdersComp ..> Cart_Get_IntAPI : "1. Recupera itens do carrinho (X-Internal-Token)"
+OrdersComp ..> Inv_DecAPI : "2. Decremento Atômico de Estoque (X-Internal-Token)"
+OrdersComp ..> Pay_IntAPI : "3. Simulação Idempotente de Pagamento (Idempotency-Key + X-Internal-Token)"
+OrdersComp ..> Pay_Status_IntAPI : "3a. Consulta status da tentativa em caso de timeout"
+OrdersComp ..> Inv_RestAPI : "4a. Restauração Idempotente (apenas após recusa terminal)"
+OrdersComp ..> Cart_Del_IntAPI : "4b. Limpeza do carrinho (se pagamento aprovado)"
+OrdersComp ..> Rec_IntAPI : "4c. Registro interno de compra (PURCHASE)"
+
+RecComp ..> Auth_Pref_IntAPI : "Consulta preferências declaradas do cliente"
+RecComp ..> Cat_Active_IntAPI : "Consulta produtos candidatos ativos para ranking"
+
+CatalogComp ..> LPS_IntAPI : "Consulta Manifesto para Validação de Features"
+OrdersComp ..> LPS_IntAPI : "Consulta Manifesto para Validação de Regras"
+PayComp ..> LPS_IntAPI : "Valida métodos habilitados no manifesto"
+ShipComp ..> LPS_IntAPI : "Valida modalidades habilitadas no manifesto"
+CartComp ..> LPS_IntAPI : "Valida contexto de loja ativa"
+
+' Injeção de componentes de python-common nos microsserviços
+CacheProvider <.. CatalogComp : "Cache TTL 30s"
+CacheProvider <.. OrdersComp : "Cache TTL 30s"
+CacheProvider <.. PayComp : "Cache TTL 30s"
+CacheProvider <.. ShipComp : "Cache TTL 30s"
+CacheProvider <.. CartComp : "Cache TTL 30s"
+
+SecContext <.. Gateway : "Higieniza cabeçalhos (remove forjados)"
+SecContext <.. OrdersComp : "Anexa X-Internal-Token em chamadas internas"
+SecContext <.. RecComp : "Valida e anexa X-Internal-Token"
+SecContext <.. CartComp : "Valida e anexa X-Internal-Token"
+SecContext <.. CatalogComp : "Valida X-Internal-Token em rotas /internal/*"
+SecContext <.. PayComp : "Valida X-Internal-Token em rotas /internal/*"
+
+DbFactory <.. AuthComp : "Configura SQLite WAL"
+DbFactory <.. CatalogComp : "Configura SQLite WAL"
+DbFactory <.. CartComp : "Configura SQLite WAL"
+DbFactory <.. OrdersComp : "Configura SQLite WAL"
+DbFactory <.. PayComp : "Configura SQLite WAL"
+DbFactory <.. ShipComp : "Configura SQLite WAL"
+DbFactory <.. RecComp : "Configura SQLite WAL"
+DbFactory <.. LPSComp : "Configura SQLite WAL"
+
+@enduml

@@ -1,0 +1,26 @@
+digraph Features {
+  graph [rankdir=TB, bgcolor="white", pad="0.3", nodesep="0.3", ranksep="0.45", fontname="Arial", label="Modelo de Features — VitrineFlex MVP", labelloc=t, fontsize=20];
+  node [shape=box, style="rounded,filled", fillcolor="#F4F7FB", color="#50627A", fontname="Arial", fontsize=9, margin="0.11,0.07"];
+  edge [color="#596579", arrowsize=0.7];
+  root [label="VitrineFlex E-commerce LPS", fillcolor="#DDEBFF", penwidth=2];
+  common [label="Núcleo obrigatório\nAuth • Catalog • Cart • Checkout\nOrders • Recommendations", fillcolor="#D9F2E6"];
+  segment [label="Segmento (XOR)", fillcolor="#FFF0CE"];
+  fashion [label="Moda\nTamanho • Cor • Variantes"];
+  tech [label="Tecnologia\nSpecs • Garantia"];
+  books [label="Livros\nISBN • Autor • Editora"];
+  payment [label="Pagamento (OR ≥ 1)", fillcolor="#FFF0CE"];
+  pix [label="PIX"] ; card [label="Cartão"]; boleto [label="Boleto"];
+  delivery [label="Atendimento (OR ≥ 1)", fillcolor="#FFF0CE"];
+  home [label="Entrega"] ; pickup [label="Retirada"];
+  optional [label="Opcionais suportadas no MVP", fillcolor="#EAE2FF"];
+  fav [label="Favoritos\nAutenticação obrigatória"];
+  compare [label="Comparação\nSomente segmento TECH"];
+  future [label="Fora do MVP\nReviews • Coupons", fillcolor="#FCE7E7", color="#B45353"];
+  root -> common; root -> segment; root -> payment; root -> delivery; root -> optional; root -> future;
+  segment -> fashion [label="XOR"]; segment -> tech [label="XOR"]; segment -> books [label="XOR"];
+  payment -> pix [label="OR"]; payment -> card [label="OR"]; payment -> boleto [label="OR"];
+  delivery -> home [label="OR"]; delivery -> pickup [label="OR"];
+  optional -> fav [label="optional"]; optional -> compare [label="optional"];
+  constraint [shape=note, fillcolor="#FFF8E6", label="Restrições:\n• Comparação requires TECH\n• Exatamente um segmento\n• Ao menos 1 pagamento e 1 modalidade\n• Reviews/Coupons não selecionáveis"];
+  optional -> constraint [style=dashed, arrowhead=none];
+}

@@ -1,0 +1,40 @@
+sequenceDiagram
+    autonumber
+    actor Admin as Administrador LPS
+    participant UI as Painel Configurador (React)
+    participant GW as API Gateway (:8000)
+    participant LPS as LPS Configuration Service (:8002)
+    participant DB as lps.db (SQLite)
+    actor Client as Cliente / Visitante
+    participant Storefront as Vitrine Derivada (/loja/:slug)
+    participant Catalog as Catalog Service (:8003)
+
+    Note over Admin, LPS: 1. Fase de Engenharia de Aplicação (Derivação)
+    Admin->>UI: Preenche formulário (Nome, Slug, Segmento, Features, Pagamento, Entrega)
+    UI->>GW: POST /api/v1/lps/stores/validate (com JWT LPS_ADMIN)
+    GW->>LPS: Encaminha validação
+    LPS->>LPS: Executa regras de inferência (XOR de Segmento, Requires, Excludes)
+    alt Configuração Inválida
+        LPS-->>UI: 422 INVALID_FEATURE_CONFIGURATION (Lista de violações)
+        UI-->>Admin: Exibe alertas visuais de restrição
+    else Configuração Válida
+        LPS-->>UI: 200 OK (Validação Aprovada)
+        Admin->>UI: Confirma "Criar Produto Derivado"
+        UI->>GW: POST /api/v1/lps/stores
+        GW->>LPS: Encaminha criação
+        LPS->>DB: Persiste Store e ProductManifest (manifest_version=1)
+        LPS-->>UI: 201 Created (store_id, slug, manifesto)
+        UI-->>Admin: Exibe URL pública da loja (/loja/{slug})
+    end
+
+    Note over Client, Catalog: 2. Fase de Execução do Produto Derivado (Runtime)
+    Client->>Storefront: Acessa rota /loja/{slug}
+    Storefront->>GW: GET /api/v1/lps/stores/{slug}/manifest
+    GW->>LPS: Consulta manifesto público
+    LPS-->>Storefront: Retorna ProductManifest completo (store_id, features, theme)
+    Storefront->>Storefront: Aplica tema CSS e monta árvores de componentes por feature
+    Storefront->>GW: GET /api/v1/catalog/products (Header X-Store-ID: {store_id})
+    GW->>Catalog: Encaminha requisição com contexto de loja
+    Catalog->>Catalog: Filtra catálogo exclusivo por store_id
+    Catalog-->>Storefront: Retorna produtos e variantes compatíveis
+    Storefront-->>Client: Renderiza vitrine personalizada do segmento

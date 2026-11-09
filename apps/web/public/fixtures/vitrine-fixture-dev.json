@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "manifest_version": 1,
+  "created_at": "2026-11-08T10:00:00Z",
+  "store": {
+    "id": "e4b3a1a0-7b2c-4e89-b8d1-111111111111",
+    "name": "Vitrine Tech Dev (Fixture Local)",
+    "slug": "vitrine-tech",
+    "segment": "TECH"
+  },
+  "features": {
+    "auth": true,
+    "catalog": true,
+    "cart": true,
+    "orders": true,
+    "checkout": true,
+    "recommendations": true,
+    "size_grid": false,
+    "color_variants": false,
+    "variant_sku": false,
+    "technical_specs": true,
+    "warranty_info": true,
+    "product_comparison": true,
+    "isbn": false,
+    "author": false,
+    "publisher": false,
+    "literary_genre": false,
+    "edition": false,
+    "favorites": true
+  },
+  "payment_methods": ["PIX", "CARD", "BOLETO"],
+  "fulfillment_modes": ["DELIVERY"],
+  "theme": {
+    "primary_color": "#1e40af",
+    "secondary_color": "#0284c7",
+    "font_family": "Inter, sans-serif",
+    "logo_url": "/assets/logos/vitrine-tech.svg"
+  }
+}
