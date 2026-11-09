@@ -28,6 +28,7 @@ import { FavoriteHeartButton } from '../components/extensions/FavoriteHeartButto
 import { FashionVariantSelector } from '../components/extensions/FashionVariantSelector';
 import { TechnicalSpecificationsTable } from '../components/extensions/TechnicalSpecificationsTable';
 import { BookMetadataPanel } from '../components/extensions/BookMetadataPanel';
+import { ProductImage } from '../components/ProductImage';
 import { FashionSizeGuideModal } from '../components/extensions/FashionSizeGuideModal';
 import { BookPreviewModal } from '../components/extensions/BookPreviewModal';
 import { BackInStockAlertModal } from '../components/extensions/BackInStockAlertModal';
@@ -269,21 +270,20 @@ export const ProductPage: React.FC = () => {
                 ? 'rounded-lg bg-[#ECE6D9] p-4 shadow-md'
                 : 'rounded-xl bg-white border border-[#E4E7EC] p-4'
             }`}>
-              {product.image_url ? (
-                <img
-                  src={product.image_url}
-                  alt={product.title}
-                  className={`w-full h-full ${
-                    isFashion
-                      ? 'object-cover'
-                      : isBooks
-                      ? 'object-contain shadow-lg rounded-sm ring-1 ring-black/10'
-                      : 'object-contain p-2'
-                  }`}
-                />
-              ) : (
-                <div className="text-theme-muted text-sm">Sem imagem disponível</div>
-              )}
+              <ProductImage
+                src={product.image_url}
+                alt={product.title}
+                theme={manifest.segment.toLowerCase()}
+                aspect={isFashion ? 'fashion' : isBooks ? 'books' : 'tech'}
+                title={product.title}
+                className={`w-full h-full ${
+                  isFashion
+                    ? 'object-cover'
+                    : isBooks
+                    ? 'object-contain shadow-lg rounded-sm ring-1 ring-black/10'
+                    : 'object-contain p-2'
+                }`}
+              />
 
               {/* Badges on image */}
               <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">

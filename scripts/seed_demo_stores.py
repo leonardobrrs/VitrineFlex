@@ -222,6 +222,7 @@ def seed_catalog_products():
                     {"size": "GG", "color": "Azul Marinho", "sku": "POLO-GG-NVY", "stock_quantity": 4},
                     {"size": "M", "color": "Branco", "sku": "POLO-M-WHT", "stock_quantity": 10},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Masculino"}, {"name": "Departamento", "value": "Masculino"}, {"name": "Estilo", "value": "Casual"}],
             },
             {
                 "id": "prod-moda-vestido",
@@ -236,6 +237,7 @@ def seed_catalog_products():
                     {"size": "M", "color": "Estampa Floral Rosa", "sku": "VEST-M-FLR", "stock_quantity": 7},
                     {"size": "G", "color": "Estampa Floral Rosa", "sku": "VEST-G-FLR", "stock_quantity": 4},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Feminino"}, {"name": "Departamento", "value": "Feminino"}, {"name": "Estilo", "value": "Vestidos"}],
             },
             {
                 "id": "prod-moda-jaqueta",
@@ -251,6 +253,7 @@ def seed_catalog_products():
                     {"size": "GG", "color": "Preto", "sku": "JAQ-GG-BLK", "stock_quantity": 3},
                     {"size": "M", "color": "Marrom", "sku": "JAQ-M-BRN", "stock_quantity": 3},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Unissex"}, {"name": "Departamento", "value": "Casacos"}, {"name": "Estilo", "value": "Biker"}],
             },
             {
                 "id": "prod-moda-jeans",
@@ -265,6 +268,7 @@ def seed_catalog_products():
                     {"size": "40", "color": "Azul Escuro", "sku": "JNS-40-DKBLU", "stock_quantity": 11},
                     {"size": "42", "color": "Azul Escuro", "sku": "JNS-42-DKBLU", "stock_quantity": 7},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Feminino"}, {"name": "Departamento", "value": "Feminino"}, {"name": "Estilo", "value": "Jeans"}],
             },
             {
                 "id": "prod-moda-tshirt-basic",
@@ -280,6 +284,7 @@ def seed_catalog_products():
                     {"size": "G", "color": "Preto", "sku": "TSH-G-BLK", "stock_quantity": 12},
                     {"size": "M", "color": "Branco", "sku": "TSH-M-WHT", "stock_quantity": 18},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Masculino"}, {"name": "Departamento", "value": "Masculino"}, {"name": "Estilo", "value": "Básico"}],
             },
             {
                 "id": "prod-moda-camisa-linho",
@@ -294,6 +299,7 @@ def seed_catalog_products():
                     {"size": "G", "color": "Areia", "sku": "LNH-G-SND", "stock_quantity": 9},
                     {"size": "M", "color": "Azul Céu", "sku": "LNH-M-SKY", "stock_quantity": 6},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Masculino"}, {"name": "Departamento", "value": "Masculino"}, {"name": "Estilo", "value": "Casual Sofisticado"}],
             },
             {
                 "id": "prod-moda-blazer-alfaiataria",
@@ -307,6 +313,7 @@ def seed_catalog_products():
                     {"size": "M", "color": "Cinza Chumbo", "sku": "BLZ-M-GRY", "stock_quantity": 5},
                     {"size": "G", "color": "Cinza Chumbo", "sku": "BLZ-G-GRY", "stock_quantity": 6},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Masculino"}, {"name": "Departamento", "value": "Masculino"}, {"name": "Estilo", "value": "Alfaiataria moderna"}],
             },
             {
                 "id": "prod-moda-moletom-hoodie",
@@ -321,6 +328,7 @@ def seed_catalog_products():
                     {"size": "M", "color": "Verde Oliva", "sku": "MLT-M-OLV", "stock_quantity": 14},
                     {"size": "G", "color": "Verde Oliva", "sku": "MLT-G-OLV", "stock_quantity": 10},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Masculino"}, {"name": "Departamento", "value": "Masculino"}, {"name": "Estilo", "value": "Casual Conforto"}],
             },
             {
                 "id": "prod-moda-calca-chino",
@@ -335,6 +343,7 @@ def seed_catalog_products():
                     {"size": "40", "color": "Bege Khaki", "sku": "CHN-40-KHK", "stock_quantity": 12},
                     {"size": "42", "color": "Bege Khaki", "sku": "CHN-42-KHK", "stock_quantity": 6},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Masculino"}, {"name": "Departamento", "value": "Masculino"}, {"name": "Estilo", "value": "Alfaiataria moderna"}],
             },
             {
                 "id": "prod-moda-vestido-festa",
@@ -348,6 +357,7 @@ def seed_catalog_products():
                     {"size": "P", "color": "Azul Marinho", "sku": "VLG-P-NVY", "stock_quantity": 3},
                     {"size": "M", "color": "Azul Marinho", "sku": "VLG-M-NVY", "stock_quantity": 5},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Feminino"}, {"name": "Departamento", "value": "Feminino"}, {"name": "Estilo", "value": "Noite Festa"}],
             },
             {
                 "id": "prod-moda-tenis-casual",
@@ -362,6 +372,7 @@ def seed_catalog_products():
                     {"size": "40", "color": "Branco Puro", "sku": "TNS-40-WHT", "stock_quantity": 10},
                     {"size": "41", "color": "Branco Puro", "sku": "TNS-41-WHT", "stock_quantity": 8},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Unissex"}, {"name": "Departamento", "value": "Calçados"}, {"name": "Estilo", "value": "Casual"}],
             },
             {
                 "id": "prod-moda-bolsa-couro",
@@ -375,6 +386,7 @@ def seed_catalog_products():
                     {"size": "Único", "color": "Carmim", "sku": "BLS-U-CRM", "stock_quantity": 7},
                     {"size": "Único", "color": "Preto Clássico", "sku": "BLS-U-BLK", "stock_quantity": 9},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Feminino"}, {"name": "Departamento", "value": "Acessórios"}, {"name": "Estilo", "value": "Acessórios"}],
             },
             {
                 "id": "prod-moda-cinto-elegance",
@@ -388,6 +400,7 @@ def seed_catalog_products():
                     {"size": "95cm", "color": "Preto e Marrom", "sku": "CNT-95-DF", "stock_quantity": 12},
                     {"size": "105cm", "color": "Preto e Marrom", "sku": "CNT-105-DF", "stock_quantity": 14},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Unissex"}, {"name": "Departamento", "value": "Acessórios"}, {"name": "Estilo", "value": "Acessórios"}],
             },
             {
                 "id": "prod-moda-trench-coat",
@@ -402,6 +415,7 @@ def seed_catalog_products():
                     {"size": "M", "color": "Camel", "sku": "TRN-M-CML", "stock_quantity": 6},
                     {"size": "G", "color": "Camel", "sku": "TRN-G-CML", "stock_quantity": 3},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Feminino"}, {"name": "Departamento", "value": "Feminino"}, {"name": "Estilo", "value": "Alfaiataria moderna"}],
             },
             {
                 "id": "prod-moda-bermuda-linho",
@@ -415,6 +429,7 @@ def seed_catalog_products():
                     {"size": "40", "color": "Areia", "sku": "BRM-40-SND", "stock_quantity": 8},
                     {"size": "42", "color": "Areia", "sku": "BRM-42-SND", "stock_quantity": 7},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Masculino"}, {"name": "Departamento", "value": "Masculino"}, {"name": "Estilo", "value": "Casual Verão"}],
             },
             {
                 "id": "prod-moda-cardigan-tricot",
@@ -428,6 +443,7 @@ def seed_catalog_products():
                     {"size": "M", "color": "Cinza Mescla", "sku": "CRD-M-GRY", "stock_quantity": 6},
                     {"size": "G", "color": "Cinza Mescla", "sku": "CRD-G-GRY", "stock_quantity": 7},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Feminino"}, {"name": "Departamento", "value": "Feminino"}, {"name": "Estilo", "value": "Casual Elegante"}],
             },
             {
                 "id": "prod-moda-jaqueta-jeans",
@@ -442,6 +458,7 @@ def seed_catalog_products():
                     {"size": "M", "color": "Jeans Médio", "sku": "JKJ-M-MED", "stock_quantity": 9},
                     {"size": "G", "color": "Jeans Médio", "sku": "JKJ-G-MED", "stock_quantity": 6},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Unissex"}, {"name": "Departamento", "value": "Jaquetas"}, {"name": "Estilo", "value": "Vintage Urbano"}],
             },
             {
                 "id": "prod-moda-blusa-crepe",
@@ -455,6 +472,7 @@ def seed_catalog_products():
                     {"size": "P", "color": "Off-White", "sku": "BLU-P-OFW", "stock_quantity": 8},
                     {"size": "M", "color": "Off-White", "sku": "BLU-M-OFW", "stock_quantity": 11},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Feminino"}, {"name": "Departamento", "value": "Feminino"}, {"name": "Estilo", "value": "Alfaiataria moderna"}],
             },
             {
                 "id": "prod-moda-calca-jogger",
@@ -468,6 +486,7 @@ def seed_catalog_products():
                     {"size": "M", "color": "Preto", "sku": "JOG-M-BLK", "stock_quantity": 12},
                     {"size": "G", "color": "Preto", "sku": "JOG-G-BLK", "stock_quantity": 9},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Masculino"}, {"name": "Departamento", "value": "Masculino"}, {"name": "Estilo", "value": "Streetwear"}],
             },
             {
                 "id": "prod-moda-scarpin-classic",
@@ -482,6 +501,7 @@ def seed_catalog_products():
                     {"size": "37", "color": "Nude Rosado", "sku": "SCP-37-NUD", "stock_quantity": 7},
                     {"size": "38", "color": "Nude Rosado", "sku": "SCP-38-NUD", "Nx": 4, "stock_quantity": 4},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Feminino"}, {"name": "Departamento", "value": "Feminino"}, {"name": "Estilo", "value": "Alfaiataria moderna"}],
             },
             {
                 "id": "prod-moda-carteira-slim",
@@ -495,6 +515,7 @@ def seed_catalog_products():
                     {"size": "Único", "color": "Caramelo", "sku": "CRT-U-CRM", "stock_quantity": 20},
                     {"size": "Único", "color": "Preto", "sku": "CRT-U-BLK", "stock_quantity": 18},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Unissex"}, {"name": "Departamento", "value": "Acessórios"}, {"name": "Estilo", "value": "Acessórios"}],
             },
             {
                 "id": "prod-moda-cachecol-cashmere",
@@ -508,6 +529,7 @@ def seed_catalog_products():
                     {"size": "Único", "color": "Bordeaux", "sku": "CCH-U-BDX", "stock_quantity": 9},
                     {"size": "Único", "color": "Cinza Claro", "sku": "CCH-U-LGRY", "stock_quantity": 11},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Unissex"}, {"name": "Departamento", "value": "Acessórios"}, {"name": "Estilo", "value": "Acessórios"}],
             },
             {
                 "id": "prod-moda-regata-rib",
@@ -522,6 +544,7 @@ def seed_catalog_products():
                     {"size": "M", "color": "Branco", "sku": "RGT-M-WHT", "stock_quantity": 14},
                     {"size": "G", "color": "Branco", "sku": "RGT-G-WHT", "stock_quantity": 8},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Feminino"}, {"name": "Departamento", "value": "Feminino"}, {"name": "Estilo", "value": "Casual Verão"}],
             },
             {
                 "id": "prod-moda-camisa-social",
@@ -535,6 +558,7 @@ def seed_catalog_products():
                     {"size": "M", "color": "Azul Claro", "sku": "SOC-M-LBLU", "stock_quantity": 8},
                     {"size": "G", "color": "Azul Claro", "sku": "SOC-G-LBLU", "stock_quantity": 10},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Masculino"}, {"name": "Departamento", "value": "Masculino"}, {"name": "Estilo", "value": "Alfaiataria moderna"}],
             },
             {
                 "id": "prod-moda-vestido-esgotado",
@@ -548,6 +572,7 @@ def seed_catalog_products():
                     {"size": "P", "color": "Champagne", "sku": "SLP-P-CHP", "stock_quantity": 0},
                     {"size": "M", "color": "Champagne", "sku": "SLP-M-CHP", "stock_quantity": 0},
                 ],
+                "attributes": [{"name": "Gênero", "value": "Feminino"}, {"name": "Departamento", "value": "Feminino"}, {"name": "Estilo", "value": "Noite Festa"}],
             },
         ]
 
@@ -589,6 +614,11 @@ def seed_catalog_products():
                     session.add(var)
                 else:
                     var.stock_quantity = v_data["stock_quantity"]
+
+            if "attributes" in p_data:
+                session.query(ProductAttribute).filter(ProductAttribute.product_id == prod.id).delete()
+                for attr in p_data["attributes"]:
+                    session.add(ProductAttribute(product_id=prod.id, name=attr["name"], value=attr["value"]))
 
         # ===============================================
         # 2. VITRINE TECH (25 PRODUTOS COM ESPECIFICAÇÕES)
@@ -833,7 +863,7 @@ def seed_catalog_products():
                 "price": 249.90,
                 "stock_quantity": 22,
                 "category": "Acessórios",
-                "image_url": "https://images.unsplash.com/photo-1622445262464-84b1456045b6?auto=format&fit=crop&w=600&q=80",
+                "image_url": "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=600&q=80",
                 "attributes": [
                     {"name": "Conectividade", "value": "Indução Magnética Qi 15W / USB-C"},
                     {"name": "Garantia", "value": "12 meses"},
@@ -1036,7 +1066,7 @@ def seed_catalog_products():
                 "price": 99.90,
                 "stock_quantity": 18,
                 "category": "Computação",
-                "image_url": "https://images.unsplash.com/photo-1532012164546-f432f2e3ddb5?auto=format&fit=crop&w=600&q=80",
+                "image_url": "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=600&q=80",
                 "preview_content": (
                     "CAPÍTULO 1 — CÓDIGO LIMPO\n\n"
                     "Haverá código? Alguns argumentam que estamos próximos do fim do código, que programadores em breve não serão mais necessários. "
@@ -1559,7 +1589,7 @@ def seed_catalog_products():
                 "price": 94.90,
                 "stock_quantity": 9,
                 "category": "Ciência e Filosofia",
-                "image_url": "https://images.unsplash.com/photo-1532012164546-f432f2e3ddb5?auto=format&fit=crop&w=600&q=80",
+                "image_url": "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=600&q=80",
                 "preview_content": (
                     "AXIOMAS OU LEIS DO MOVIMENTO\n\n"
                     "LEI I: Todo corpo continua em seu estado de repouso ou de movimento uniforme em linha reta, "

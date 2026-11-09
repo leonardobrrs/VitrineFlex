@@ -17,6 +17,27 @@ HEADER_INTERNAL_TOKEN = "X-Internal-Token"
 DEFAULT_JWT_SECRET = "dev-jwt-secret-key-vitrineflex-ufal-2026-very-secure"
 DEFAULT_INTERNAL_KEY = "dev-internal-service-token-vitrineflex-ufal-2026"
 
+# --- RBAC (papéis reais do Auth Service) ---
+ROLE_CUSTOMER = "CUSTOMER"
+ROLE_STORE_ADMIN = "STORE_ADMIN"
+ROLE_LPS_ADMIN = "LPS_ADMIN"
+ALL_ROLES = (ROLE_CUSTOMER, ROLE_STORE_ADMIN, ROLE_LPS_ADMIN)
+
+PERM_USERS_MANAGE = "users:manage"
+PERM_STORES_MANAGE = "stores:manage"
+PERM_CATALOG_REPLENISH = "catalog:replenish"
+
+ROLE_PERMISSIONS: dict[str, tuple[str, ...]] = {
+    ROLE_CUSTOMER: (),
+    ROLE_STORE_ADMIN: (PERM_CATALOG_REPLENISH,),
+    ROLE_LPS_ADMIN: (PERM_USERS_MANAGE, PERM_STORES_MANAGE, PERM_CATALOG_REPLENISH),
+}
+
+
+def role_has_permission(role: Optional[str], permission: str) -> bool:
+    return permission in ROLE_PERMISSIONS.get((role or "").upper(), ())
+
+
 _hasher = PasswordHasher(
     time_cost=2,
     memory_cost=65536,  # 64 MB

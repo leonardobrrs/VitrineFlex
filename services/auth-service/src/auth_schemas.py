@@ -25,6 +25,46 @@ class UserResponse(BaseModel):
     created_at: datetime
 
 
+class AdminUserResponse(UserResponse):
+    """Visão administrativa: nunca inclui senha, hash ou tokens."""
+    is_active: bool
+    updated_at: datetime
+    deleted_at: Optional[datetime] = None
+
+
+class AdminUserCreateRequest(BaseModel):
+    name: str = Field(..., min_length=2, max_length=255)
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=128, description="Senha inicial (mín. 8 caracteres)")
+    role: str = Field(..., description="CUSTOMER, STORE_ADMIN ou LPS_ADMIN (escolha explícita)")
+
+
+class AdminUserUpdateRequest(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=255)
+    email: Optional[EmailStr] = None
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
+    new_password: Optional[str] = Field(None, min_length=8, max_length=128)
+
+
+class RoleInfo(BaseModel):
+    role: str
+    label: str
+    permissions: List[str]
+
+
+class AuditLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    actor_id: str
+    actor_email: Optional[str] = None
+    target_user_id: Optional[str] = None
+    action: str
+    details: str
+    created_at: datetime
+
+
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

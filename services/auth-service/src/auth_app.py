@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from python_common.errors import AppError, error_json_response
 from auth_database import init_db
 from auth_routes import router
+from auth_admin_routes import router as admin_router
 
 
 @asynccontextmanager
@@ -66,3 +67,4 @@ def health_check():
 
 
 app.include_router(router)
+app.include_router(admin_router)

@@ -10,6 +10,8 @@ from python_common.security import (
     create_access_token,
     decode_access_token,
     validate_internal_token,
+    ROLE_CUSTOMER,
+    ROLE_PERMISSIONS,
     HEADER_USER_ID,
     HEADER_INTERNAL_TOKEN,
 )
@@ -51,6 +53,15 @@ def resolve_authenticated_user_id(
 
 @router.post("/api/v1/auth/register", response_model=UserResponse, status_code=201)
 def register_user(req: UserRegisterRequest, db: Session = Depends(get_db)):
+    # Cadastro público NUNCA concede privilégios: contas administrativas só são criadas
+    # por um administrador autenticado (/api/v1/auth/admin/users).
+    if req.role and req.role.upper() != ROLE_CUSTOMER:
+        raise AppError(
+            status_code=403,
+            code="ROLE_NOT_ALLOWED",
+            message="O cadastro público só permite o papel CUSTOMER. Contas administrativas são criadas por um administrador.",
+        )
+
     existing = db.query(User).filter(User.email == req.email).first()
     if existing:
         raise AppError(
@@ -64,7 +75,7 @@ def register_user(req: UserRegisterRequest, db: Session = Depends(get_db)):
         email=req.email,
         password_hash=hashed_pwd,
         name=req.name,
-        role=req.role or "CUSTOMER",
+        role=ROLE_CUSTOMER,
     )
     db.add(user)
     db.flush()
@@ -87,6 +98,13 @@ def login_user(req: UserLoginRequest, db: Session = Depends(get_db)):
             message="Credenciais inválidas: e-mail ou senha incorretos.",
         )
 
+    if not user.is_active or user.deleted_at is not None:
+        raise AppError(
+            status_code=403,
+            code="ACCOUNT_DISABLED",
+            message="Esta conta está desativada. Entre em contato com um administrador.",
+        )
+
     token = create_access_token(user_id=user.id, email=user.email, role=user.role)
     return LoginResponse(access_token=token, token_type="bearer", user=user)
 
@@ -99,6 +117,8 @@ def get_current_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise AppError(status_code=404, code="USER_NOT_FOUND", message="Usuário não encontrado.")
+    if not user.is_active or user.deleted_at is not None:
+        raise AppError(status_code=403, code="ACCOUNT_DISABLED", message="Esta conta está desativada.")
     return user
 
 
@@ -156,6 +176,26 @@ def get_my_preferences(
 
 
 # --- Internal Service Routes (/internal/v1/*) ---
+
+
+@router.get("/internal/v1/auth/users/{user_id}/authz")
+def get_user_authz_internal(
+    user_id: str,
+    x_internal_token: Optional[str] = Header(None, alias=HEADER_INTERNAL_TOKEN),
+    db: Session = Depends(get_db),
+):
+    """Papel/estado ATUAIS da conta, para serviços que precisam autorizar ações administrativas."""
+    validate_internal_token(x_internal_token)
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise AppError(status_code=404, code="USER_NOT_FOUND", message="Usuário não encontrado.")
+    return {
+        "id": user.id,
+        "email": user.email,
+        "role": user.role,
+        "is_active": bool(user.is_active) and user.deleted_at is None,
+        "permissions": list(ROLE_PERMISSIONS.get(user.role, ())),
+    }
 
 
 @router.get("/internal/v1/auth/users/{user_id}/preferences", response_model=UserPreferencesResponse)

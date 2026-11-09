@@ -130,8 +130,38 @@ class FeatureManifestProvider:
         features = manifest.get("features", {})
         return bool(features.get(feature_key, False))
 
+    @staticmethod
+    def _raise_if_archived(store_id: str, manifest: Dict[str, Any]) -> None:
+        if (manifest.get("store_status") or "ACTIVE").upper() != "ACTIVE":
+            raise AppError(
+                status_code=403,
+                code="STORE_ARCHIVED",
+                message=f"A loja '{store_id}' foi arquivada e não aceita novas operações comerciais.",
+                details={"store_id": store_id},
+            )
+
+    def assert_store_active(self, store_id: str) -> None:
+        """Lança 403 STORE_ARCHIVED se a loja sofreu exclusão lógica (novas operações comerciais bloqueadas)."""
+        self._raise_if_archived(store_id, self.get_manifest(store_id))
+
+    def assert_store_not_archived(self, store_id: str) -> None:
+        """
+        Variante tolerante para caminhos de LEITURA/baixa de estoque: bloqueia SOMENTE quando o LPS
+        confirma que a loja está arquivada. Se o LPS não puder ser consultado, não bloqueia aqui
+        (pagamento e frete continuam falhando fechado, então nenhuma compra é concluída sem o LPS).
+        """
+        try:
+            manifest = self.get_manifest(store_id)
+        except AppError:
+            return
+        self._raise_if_archived(store_id, manifest)
+
+    async def assert_store_active_async(self, store_id: str) -> None:
+        self._raise_if_archived(store_id, await self.get_manifest_async(store_id))
+
     def assert_feature_enabled(self, store_id: str, feature_key: str) -> None:
-        """Lança 403 FEATURE_NOT_ENABLED se a feature não estiver ativada."""
+        """Lança 403 FEATURE_NOT_ENABLED se a feature não estiver ativada (ou STORE_ARCHIVED)."""
+        self.assert_store_active(store_id)
         if not self.is_feature_enabled(store_id, feature_key):
             raise AppError(
                 status_code=403,
@@ -141,6 +171,7 @@ class FeatureManifestProvider:
             )
 
     async def assert_feature_enabled_async(self, store_id: str, feature_key: str) -> None:
+        await self.assert_store_active_async(store_id)
         enabled = await self.is_feature_enabled_async(store_id, feature_key)
         if not enabled:
             raise AppError(

@@ -15,6 +15,7 @@ import { BookPreviewModal } from './extensions/BookPreviewModal';
 import { BackInStockAlertModal } from './extensions/BackInStockAlertModal';
 import { useCart } from '../context/CartContext';
 import { resolveStoreTheme, StoreTheme } from '../services/theme';
+import { ProductImage } from './ProductImage';
 
 interface ProductCardProps {
   product: Product;
@@ -102,18 +103,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* Image 3:4 */}
           <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#ECE8E1]">
             <Link to={productDetailPath} className="block w-full h-full">
-              {product.image_url ? (
-                <img
-                  src={product.image_url}
-                  alt={product.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-stone-400 text-xs">
-                  Sem foto
-                </div>
-              )}
+              <ProductImage
+                src={product.image_url}
+                alt={product.title}
+                theme="fashion"
+                aspect="fashion"
+                title={product.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
             </Link>
 
             {/* Favorite button */}
@@ -229,18 +226,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* Product Image: Clean 1:1 Isolate */}
           <div className="relative aspect-square w-full p-4 overflow-hidden bg-white">
             <Link to={productDetailPath} className="block w-full h-full flex items-center justify-center">
-              {product.image_url ? (
-                <img
-                  src={product.image_url}
-                  alt={product.title}
-                  className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs">
-                  Sem foto
-                </div>
-              )}
+              <ProductImage
+                src={product.image_url}
+                alt={product.title}
+                theme="tech"
+                aspect="tech"
+                title={product.title}
+                className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+              />
             </Link>
 
             {isOutOfStock && (
@@ -342,18 +335,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* Book Cover 2:3 */}
           <div className="relative aspect-[2/3] w-full p-4 overflow-hidden flex items-center justify-center">
             <Link to={productDetailPath} className="block h-full max-w-full">
-              {product.image_url ? (
-                <img
-                  src={product.image_url}
-                  alt={product.title}
-                  className="h-full object-contain shadow-md rounded-sm group-hover:scale-105 group-hover:shadow-xl transition-all duration-300"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="h-full aspect-[2/3] bg-[#EEE5D8] flex items-center justify-center text-stone-400 text-xs border border-[#DED2C1]">
-                  Sem capa
-                </div>
-              )}
+              <ProductImage
+                src={product.image_url}
+                alt={product.title}
+                theme="books"
+                aspect="books"
+                title={product.title}
+                subtitle={authorAttr}
+                className="h-full object-contain shadow-md rounded-sm group-hover:scale-105 group-hover:shadow-xl transition-all duration-300"
+              />
             </Link>
 
             {isOutOfStock && (
@@ -429,9 +419,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="group relative flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition">
           <div className="relative aspect-square w-full bg-slate-100">
             <Link to={productDetailPath}>
-              <img
+              <ProductImage
                 src={product.image_url}
                 alt={product.title}
+                theme="neutral"
+                aspect="square"
+                title={product.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition"
               />
             </Link>

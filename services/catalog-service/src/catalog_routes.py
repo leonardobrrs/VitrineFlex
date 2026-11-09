@@ -38,6 +38,8 @@ from catalog_schemas import (
 
 router = APIRouter()
 manifest_provider = FeatureManifestProvider()
+# Papéis autorizados a repor estoque: "ADMIN" (legado) + papéis reais do Auth Service com catalog:replenish
+ADMIN_REPLENISH_ROLES = {"ADMIN", "LPS_ADMIN", "STORE_ADMIN"}
 
 
 def resolve_user_id(
@@ -83,6 +85,7 @@ def list_store_products(
     category: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
+    manifest_provider.assert_store_not_archived(store_id)
     query = db.query(Product).filter(Product.store_id == store_id, Product.is_active == True)
     if category:
         query = query.filter(Product.category == category)
@@ -130,6 +133,7 @@ def compare_products(
 @router.get("/api/v1/catalog/stores/{store_id}/products/{product_id}", response_model=ProductResponse)
 def get_store_product_detail(store_id: str, product_id: str, db: Session = Depends(get_db)):
     """Busca os detalhes de um produto validando estritamente seu pertencimento à loja."""
+    manifest_provider.assert_store_not_archived(store_id)
     product = db.query(Product).filter(Product.id == product_id, Product.store_id == store_id).first()
     if not product:
         raise AppError(status_code=404, code="PRODUCT_NOT_FOUND", message="Produto não encontrado nesta loja.")
@@ -148,6 +152,7 @@ def get_product_detail(
     product = query.first()
     if not product:
         raise AppError(status_code=404, code="PRODUCT_NOT_FOUND", message="Produto não encontrado nesta loja.")
+    manifest_provider.assert_store_not_archived(product.store_id)
     return serialize_product(product, db)
 
 
@@ -401,6 +406,9 @@ def decrement_inventory(
     A operation_id identifica a reserva da linha do pedido.
     """
     validate_internal_token(x_internal_token)
+
+    # Loja arquivada (exclusão lógica) não aceita novas reservas de estoque / compras
+    manifest_provider.assert_store_not_archived(req.store_id)
 
     # 1. Idempotency Check: already decremented for this operation_id?
     existing_movement = (
@@ -690,6 +698,10 @@ def get_internal_active_products(
     db: Session = Depends(get_db),
 ):
     validate_internal_token(x_internal_token)
+    try:
+        manifest_provider.assert_store_not_archived(store_id)
+    except AppError:
+        return []  # loja arquivada: sem candidatos para recomendações
     products = db.query(Product).filter(Product.store_id == store_id, Product.is_active == True).all()
     return [serialize_product(p, db) for p in products]
 
@@ -885,13 +897,13 @@ def replenish_product_stock(
         except Exception:
             pass
 
-    if not is_authorized and x_user_role and x_user_role.upper() == "ADMIN":
+    if not is_authorized and x_user_role and x_user_role.upper() in ADMIN_REPLENISH_ROLES:
         is_authorized = True
 
     if not is_authorized and authorization and authorization.startswith("Bearer "):
         try:
             claims = decode_access_token(authorization.split(" ")[1])
-            if claims.get("role", "").upper() == "ADMIN":
+            if claims.get("role", "").upper() in ADMIN_REPLENISH_ROLES:
                 is_authorized = True
         except Exception:
             pass

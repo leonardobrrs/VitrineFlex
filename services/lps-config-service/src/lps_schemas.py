@@ -41,6 +41,7 @@ class ManifestResponse(BaseModel):
     payment_methods: List[str]
     fulfillment_modes: List[str]
     created_at: datetime
+    store_status: str = "ACTIVE"
 
 
 class StoreResponse(BaseModel):
@@ -51,6 +52,9 @@ class StoreResponse(BaseModel):
     name: str
     segment: str
     created_at: datetime
+    status: str = "ACTIVE"
+    archived_at: Optional[datetime] = None
+    active_features_count: Optional[int] = None
     current_manifest: Optional[ManifestResponse] = None
 
 

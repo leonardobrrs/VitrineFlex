@@ -82,7 +82,7 @@ export const FashionSecondaryFeature: React.FC<{ onSelectCategory: (category: st
             <div className="pt-2">
               <button
                 type="button"
-                onClick={() => onSelectCategory('Masculino')}
+                onClick={() => onSelectCategory('Alfaiataria moderna')}
                 className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.18em] uppercase text-[#191918] border-b border-[#191918] pb-1 hover:text-stone-600 hover:border-stone-400 transition"
               >
                 <span>Explorar</span>
@@ -126,7 +126,7 @@ export const FashionCategoriesSection: React.FC<{ onSelectCategory: (category: s
               Explore por departamento
             </h2>
           </div>
-          <div className="flex items-center space-x-4 text-xs font-medium tracking-[0.12em] uppercase text-[#69655F]">
+          <div className="flex flex-wrap items-center gap-4 text-xs font-medium tracking-[0.12em] uppercase text-[#69655F]">
             {categories.map((c) => (
               <button
                 key={c.name}
@@ -137,6 +137,13 @@ export const FashionCategoriesSection: React.FC<{ onSelectCategory: (category: s
                 {c.name}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => onSelectCategory(null as any)}
+              className="hover:text-[#191918] transition font-bold text-stone-900 border-l border-stone-300 pl-4"
+            >
+              Catálogo Completo
+            </button>
           </div>
         </div>
 

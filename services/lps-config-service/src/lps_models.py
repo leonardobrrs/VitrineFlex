@@ -15,6 +15,23 @@ class Store(Base):
     slug = Column(String(100), unique=True, nullable=False, index=True)
     name = Column(String(255), nullable=False)
     segment = Column(String(32), nullable=False)  # FASHION, TECH, BOOKS (Immutable - ADR-006)
+    # Ciclo de vida administrativo (exclusão lógica): ACTIVE | ARCHIVED. Persistido; o seed não reativa.
+    status = Column(String(16), nullable=False, default="ACTIVE", server_default="ACTIVE")
+    archived_at = Column(DateTime, nullable=True)
+    archived_by = Column(String(36), nullable=True)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+
+
+class StoreAuditLog(Base):
+    """Auditoria do ciclo de vida de lojas (arquivar/reativar). Preserva rastreabilidade."""
+    __tablename__ = "store_audit_logs"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    store_id = Column(String(36), nullable=False, index=True)
+    store_slug = Column(String(100), nullable=False)
+    actor_id = Column(String(36), nullable=False)
+    actor_email = Column(String(255), nullable=True)
+    action = Column(String(32), nullable=False)  # STORE_ARCHIVED | STORE_RESTORED
     created_at = Column(DateTime, default=utc_now, nullable=False)
 
 

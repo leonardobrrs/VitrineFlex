@@ -1,13 +1,11 @@
 import React from 'react';
 import {
   ArrowRight,
-  BarChart2,
 } from 'lucide-react';
 
 export const TechHero: React.FC<{
   onScrollToCatalog: () => void;
-  onOpenCompare?: () => void;
-}> = ({ onScrollToCatalog, onOpenCompare }) => {
+}> = ({ onScrollToCatalog }) => {
   return (
     <section className="bg-white border-b border-[#DDE1E5] py-10 lg:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,17 +33,6 @@ export const TechHero: React.FC<{
                 <span>Conhecer</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-
-              {onOpenCompare && (
-                <button
-                  type="button"
-                  onClick={onOpenCompare}
-                  className="inline-flex items-center gap-2 px-5 py-3 border border-[#DDE1E5] hover:bg-[#F5F6F7] text-[#15181B] text-xs font-bold rounded-md transition"
-                >
-                  <span>Comparar</span>
-                  <BarChart2 className="w-4 h-4 text-[#626B75]" />
-                </button>
-              )}
             </div>
           </div>
 

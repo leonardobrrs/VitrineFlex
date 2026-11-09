@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import { StoreHeader } from '../components/layout/StoreHeader';
 import { StoreFooter } from '../components/layout/StoreFooter';
@@ -32,6 +32,7 @@ import {
 export const StorePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const { manifest, loading, error, loadStoreBySlug, hasFeature, theme } = useStore();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -61,11 +62,60 @@ export const StorePage: React.FC = () => {
   const querySearch = searchParams.get('q');
   const queryCategory = searchParams.get('cat');
 
+  const scrollToCatalog = () => {
+    if (catalogRef.current) {
+      catalogRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleSelectCategory = (cat: string | null) => {
+    setSelectedCategory(cat);
+    setSelectedGenre(null);
+    setTimeout(scrollToCatalog, 60);
+  };
+
+  const handleSelectGenre = (genre: string | null) => {
+    setSelectedGenre(genre);
+    setSelectedCategory(null);
+    setTimeout(scrollToCatalog, 60);
+  };
+
+  const handleClearAllFilters = () => {
+    setSelectedCategory(null);
+    setSelectedGenre(null);
+    setSelectedTechFilters({});
+    setSortBy('featured');
+    if (slug) {
+      navigate(`/loja/${slug}`, { replace: true });
+    }
+    setTimeout(scrollToCatalog, 60);
+  };
+
+  // Reset catalog when triggered by header link or #catalogo state
+  useEffect(() => {
+    if (location.state?.resetCatalog || location.hash === '#catalogo') {
+      setSelectedCategory(null);
+      setSelectedGenre(null);
+      setSelectedTechFilters({});
+      setSortBy('featured');
+      setTimeout(scrollToCatalog, 80);
+    }
+  }, [location.state?.resetCatalog, location.hash]);
+
   useEffect(() => {
     if (queryCategory) {
       setSelectedCategory(queryCategory);
+      setTimeout(scrollToCatalog, 120);
+    } else if (!location.hash) {
+      setSelectedCategory(null);
     }
   }, [queryCategory]);
+
+  useEffect(() => {
+    if (querySearch) {
+      setTimeout(scrollToCatalog, 120);
+    }
+  }, [querySearch]);
 
   useEffect(() => {
     const alertState = (location.state as any)?.openStockAlert;
@@ -124,25 +174,100 @@ export const StorePage: React.FC = () => {
 
     // Search query filter
     if (querySearch) {
-      const q = querySearch.toLowerCase();
+      const q = querySearch.toLowerCase().trim();
       result = result.filter(
         (p) =>
           p.title.toLowerCase().includes(q) ||
           p.description?.toLowerCase().includes(q) ||
-          p.category?.toLowerCase().includes(q)
+          p.category?.toLowerCase().includes(q) ||
+          p.attributes?.some((a) => a.value.toLowerCase().includes(q))
       );
     }
 
     // Category / Genre filter
     const activeCat = selectedCategory || selectedGenre;
     if (activeCat) {
-      result = result.filter(
-        (p) =>
-          p.category?.toLowerCase() === activeCat.toLowerCase() ||
-          p.attributes?.some(
-            (a) => a.name.toLowerCase() === 'gênero' && a.value.toLowerCase() === activeCat.toLowerCase()
-          )
-      );
+      const target = activeCat.toLowerCase().trim();
+
+      result = result.filter((p) => {
+        const cat = p.category?.toLowerCase() || '';
+        if (cat === target) return true;
+
+        // Attribute matches: Gênero, Departamento, Estilo, Gênero Literário, Autor, Editora
+        const hasAttrMatch = p.attributes?.some((a) => {
+          const val = a.value.toLowerCase().trim();
+          const name = a.name.toLowerCase().trim();
+
+          // Moda gender & department mapping
+          if (target === 'feminino') {
+            return (name === 'gênero' || name === 'departamento') && (val === 'feminino' || val === 'unissex');
+          }
+          if (target === 'masculino') {
+            return (name === 'gênero' || name === 'departamento') && (val === 'masculino' || val === 'unissex');
+          }
+          if (target === 'acessórios' || target === 'acessorios') {
+            return (name === 'departamento' || name === 'estilo') && val === 'acessórios';
+          }
+          if (target === 'alfaiataria moderna' || target === 'alfaiataria') {
+            return name === 'estilo' && val.includes('alfaiataria');
+          }
+
+          // Books genre / author / collection mapping
+          if (name === 'gênero literário' || name === 'autor' || name === 'editora') {
+            return val.includes(target) || target.includes(val);
+          }
+
+          return val === target;
+        });
+
+        if (hasAttrMatch) return true;
+
+        // Semantic Category & Title fallback mappings
+        if (target === 'feminino') {
+          return ['vestidos', 'bolsas', 'saias', 'blusas', 'scarpin', 'regata', 'dress'].some(
+            (k) => cat.includes(k) || p.title.toLowerCase().includes(k)
+          );
+        }
+        if (target === 'masculino') {
+          return ['camisas', 'bermudas', 'blazer', 'moletons', 'chino', 'polo', 'tshirt'].some(
+            (k) => cat.includes(k) || p.title.toLowerCase().includes(k)
+          );
+        }
+        if (target === 'acessórios' || target === 'acessorios') {
+          return ['acessórios', 'cinto', 'carteira', 'cachecol', 'bolsa', 'hub', 'carregador', 'fone'].some(
+            (k) => cat.includes(k) || p.title.toLowerCase().includes(k)
+          );
+        }
+        if (target === 'alfaiataria moderna' || target === 'alfaiataria') {
+          return ['blazer', 'social', 'alfaiataria', 'trench', 'chino', 'linho'].some(
+            (k) => cat.includes(k) || p.title.toLowerCase().includes(k)
+          );
+        }
+
+        // Tech departments
+        if (target === 'smartphones') {
+          return cat.includes('smartphone') || p.title.toLowerCase().includes('iphone') || p.title.toLowerCase().includes('galaxy');
+        }
+        if (target === 'notebooks') {
+          return cat.includes('notebook') || p.title.toLowerCase().includes('dell') || p.title.toLowerCase().includes('laptop') || p.title.toLowerCase().includes('macbook');
+        }
+        if (target === 'áudio' || target === 'audio') {
+          return cat.includes('áudio') || cat.includes('audio') || p.title.toLowerCase().includes('fone') || p.title.toLowerCase().includes('headphone') || p.title.toLowerCase().includes('microfone');
+        }
+
+        // Books collections / genres
+        if (target === 'literatura') {
+          return cat.includes('literatura') || cat.includes('ficção') || p.description?.toLowerCase().includes('literatura');
+        }
+        if (target === 'clássicos' || target === 'classicos') {
+          return cat.includes('clássic') || ['1984', 'duna', 'casmurro', 'metamorfose', 'crime', 'memórias'].some((k) => p.title.toLowerCase().includes(k));
+        }
+        if (target === 'não-ficção' || target === 'não ficção' || target === 'nao ficcao') {
+          return cat.includes('não-ficção') || cat.includes('computação') || cat.includes('engenharia') || cat.includes('história') || cat.includes('ciência');
+        }
+
+        return cat.includes(target) || p.title.toLowerCase().includes(target);
+      });
     }
 
     // Technical attributes filter
@@ -181,10 +306,6 @@ export const StorePage: React.FC = () => {
       }
       setSelectedForCompare([...selectedForCompare, productId]);
     }
-  };
-
-  const scrollToCatalog = () => {
-    catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   if (loading) {
@@ -228,8 +349,8 @@ export const StorePage: React.FC = () => {
         {isFashion && (
           <>
             <FashionHero onScrollToCatalog={scrollToCatalog} />
-            <FashionSecondaryFeature onSelectCategory={setSelectedCategory} />
-            <FashionCategoriesSection onSelectCategory={setSelectedCategory} />
+            <FashionSecondaryFeature onSelectCategory={handleSelectCategory} />
+            <FashionCategoriesSection onSelectCategory={handleSelectCategory} />
           </>
         )}
 
@@ -237,9 +358,8 @@ export const StorePage: React.FC = () => {
           <>
             <TechHero
               onScrollToCatalog={scrollToCatalog}
-              onOpenCompare={hasComparison ? () => setIsCompareModalOpen(true) : undefined}
             />
-            <TechCategoryTiles onSelectCategory={setSelectedCategory} />
+            <TechCategoryTiles onSelectCategory={handleSelectCategory} />
             {hasComparison && (
               <TechComparatorCallout onOpenCompare={() => setIsCompareModalOpen(true)} />
             )}
@@ -249,9 +369,9 @@ export const StorePage: React.FC = () => {
         {isBooks && (
           <>
             <BooksHero onScrollToCatalog={scrollToCatalog} />
-            <BooksCollectionsSection onSelectCategory={setSelectedCategory} />
-            <BooksAuthorFeature onSelectCategory={setSelectedCategory} />
-            <BooksGenreBar selectedGenre={selectedGenre} onSelectGenre={setSelectedGenre} />
+            <BooksCollectionsSection onSelectCategory={handleSelectCategory} />
+            <BooksAuthorFeature onSelectCategory={handleSelectCategory} />
+            <BooksGenreBar selectedGenre={selectedGenre} onSelectGenre={handleSelectGenre} />
           </>
         )}
 
@@ -278,12 +398,12 @@ export const StorePage: React.FC = () => {
           {/* ================================================================
               MAIN CATALOG SECTION
               ================================================================ */}
-          <section ref={catalogRef} id="catalogo" className="pt-4 space-y-6">
+          <section ref={catalogRef} id="catalogo" className="pt-4 space-y-6 scroll-mt-24">
             {/* Catalog Controls Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-stone-200/80 pb-4 gap-4">
               <div>
                 <h2 className={`text-2xl sm:text-3xl tracking-tight text-slate-900 ${isBooks ? 'font-serif font-normal' : isFashion ? 'font-light uppercase tracking-wider' : 'font-extrabold'}`}>
-                  {selectedCategory ? `${selectedCategory}` : querySearch ? `Busca: "${querySearch}"` : 'Catálogo Completo'}
+                  {selectedCategory ? `${selectedCategory}` : selectedGenre ? `${selectedGenre}` : querySearch ? `Busca: "${querySearch}"` : 'Catálogo Completo'}
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
                   {filteredProducts.length === products.length
@@ -298,12 +418,35 @@ export const StorePage: React.FC = () => {
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-xs text-slate-800 font-medium">
                     <span>{selectedCategory}</span>
                     <button
-                      onClick={() => setSelectedCategory(null)}
+                      onClick={() => handleSelectCategory(null)}
                       className="hover:text-rose-600"
+                      title="Remover filtro"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </span>
+                )}
+
+                {selectedGenre && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-xs text-slate-800 font-medium">
+                    <span>{selectedGenre}</span>
+                    <button
+                      onClick={() => handleSelectGenre(null)}
+                      className="hover:text-rose-600"
+                      title="Remover gênero"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
+                )}
+
+                {(selectedCategory || selectedGenre || Object.keys(selectedTechFilters).length > 0) && (
+                  <button
+                    onClick={handleClearAllFilters}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 underline px-1"
+                  >
+                    Catálogo completo
+                  </button>
                 )}
 
                 {/* Sort selector */}
@@ -338,20 +481,23 @@ export const StorePage: React.FC = () => {
                 Carregando catálogo de produtos...
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div className="p-16 text-center rounded-xl border border-dashed border-slate-300 bg-white space-y-2">
-                <p className="text-sm text-slate-600 font-semibold">
-                  Nenhum produto encontrado com os filtros selecionados.
+              <div className="p-16 text-center rounded-xl border border-dashed border-slate-300 bg-white space-y-3">
+                <p className="text-sm text-slate-700 font-semibold">
+                  {querySearch
+                    ? `Nenhum produto encontrado para a busca "${querySearch}".`
+                    : 'Nenhum produto encontrado com os filtros selecionados.'}
                 </p>
-                <button
-                  onClick={() => {
-                    setSelectedCategory(null);
-                    setSelectedGenre(null);
-                    setSelectedTechFilters({});
-                  }}
-                  className="text-xs font-bold text-blue-600 hover:underline"
-                >
-                  Limpar todos os filtros
-                </button>
+                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  Tente buscar por outros termos, autores ou categorias, ou limpe os filtros para visualizar a coleção completa.
+                </p>
+                <div className="pt-2">
+                  <button
+                    onClick={handleClearAllFilters}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition cursor-pointer"
+                  >
+                    Ver catálogo completo
+                  </button>
+                </div>
               </div>
             ) : hasTechFilters ? (
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">

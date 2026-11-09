@@ -51,6 +51,8 @@ def fetch_product_from_catalog(product_id: str, store_id: str, variant_id: Optio
             resp = client.get(url)
             if resp.status_code == 404:
                 raise AppError(status_code=404, code="PRODUCT_NOT_FOUND", message=f"Produto '{product_id}' não encontrado no catálogo.")
+            if resp.status_code == 403 and "STORE_ARCHIVED" in resp.text:
+                raise AppError(status_code=403, code="STORE_ARCHIVED", message="Esta loja foi arquivada e não aceita novas compras.")
             if resp.status_code != 200:
                 raise AppError(status_code=502, code="CATALOG_UNAVAILABLE", message="Falha ao consultar catálogo de produtos.")
             data = resp.json()

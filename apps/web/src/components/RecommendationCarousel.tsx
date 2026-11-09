@@ -4,6 +4,7 @@ import { Sparkles, ShoppingBag, Tag, Check } from 'lucide-react';
 import { RecommendationItem, RecommendationResponse } from '../types';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { resolveProductImage } from '../utils/imageResolver';
 
 interface RecommendationCarouselProps {
   storeId: string;
@@ -154,7 +155,7 @@ export const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
                 >
                   {item.image_url ? (
                     <img
-                      src={item.image_url}
+                      src={resolveProductImage(item.image_url)}
                       alt={item.title}
                       className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
                     />

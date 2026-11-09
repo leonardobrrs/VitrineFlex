@@ -119,7 +119,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (match && match[1]) {
       loadStoreBySlug(match[1]);
     } else {
-      loadFixture();
+      // Landing page or neutral platform pages: keep manifest null and theme neutral
+      setManifest(null);
+      setTheme('neutral');
+      setLoading(false);
     }
   }, []);
 

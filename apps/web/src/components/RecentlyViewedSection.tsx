@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { resolveProductImage } from '../utils/imageResolver';
 
 interface RecentlyViewedItem {
   id?: string;
@@ -143,7 +144,7 @@ export const RecentlyViewedSection: React.FC<RecentlyViewedSectionProps> = ({
                   >
                     {item.image_url ? (
                       <img
-                        src={item.image_url}
+                        src={resolveProductImage(item.image_url)}
                         alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"

@@ -56,6 +56,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     {
       label: 'LINHA DE PRODUTO (LPS)',
       items: [
+        { label: 'Gerenciar Lojas', path: '/admin/lojas', icon: Store },
         { label: 'Configurador', path: '/admin/configurador', icon: Sliders },
         { label: 'Catálogo de Features', path: '/admin/features', icon: Sparkles },
         { label: 'Manifestos de Vitrines', path: '/admin/manifestos', icon: FileCode2 },

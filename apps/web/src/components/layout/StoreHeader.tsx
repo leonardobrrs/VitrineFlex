@@ -27,21 +27,53 @@ export const StoreHeader: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const storeSlug = manifest?.store_slug || (manifest as any)?.store?.slug || 'vitrine-moda';
-  const effectiveTheme: StoreTheme = contextTheme !== 'neutral'
-    ? contextTheme
-    : resolveStoreTheme(storeSlug || location.pathname);
+  const isLanding = location.pathname === '/' || (!location.pathname.startsWith('/loja') && !manifest);
+  const storeSlug = manifest?.store_slug || (manifest as any)?.store?.slug || (location.pathname.startsWith('/loja/') ? location.pathname.split('/')[2] : '');
+  
+  const effectiveTheme: StoreTheme = isLanding
+    ? 'neutral'
+    : (contextTheme !== 'neutral'
+        ? contextTheme
+        : resolveStoreTheme(storeSlug || location.pathname));
 
-  const isFashion = effectiveTheme === 'fashion';
-  const isTech = effectiveTheme === 'tech';
-  const isBooks = effectiveTheme === 'books';
+  const isFashion = !isLanding && effectiveTheme === 'fashion';
+  const isTech = !isLanding && effectiveTheme === 'tech';
+  const isBooks = !isLanding && effectiveTheme === 'books';
   const hasFavorites = manifest?.features?.favorites === true;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/loja/${storeSlug}?q=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(`/loja/${storeSlug}?q=${encodeURIComponent(searchQuery.trim())}#catalogo`);
       setIsSearchOpen(false);
+      setMobileMenuOpen(false);
+      setTimeout(() => {
+        const el = document.getElementById('catalogo');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
+
+  const handleCatalogReset = (targetSlug: string) => {
+    setSearchQuery('');
+    setMobileMenuOpen(false);
+    navigate(`/loja/${targetSlug}#catalogo`, { state: { resetCatalog: Date.now() } });
+    if (location.pathname === `/loja/${targetSlug}`) {
+      const el = document.getElementById('catalogo');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handleLogoClick = (targetSlug: string) => {
+    setSearchQuery('');
+    setMobileMenuOpen(false);
+    navigate(`/loja/${targetSlug}`);
+    if (location.pathname === `/loja/${targetSlug}`) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -53,12 +85,8 @@ export const StoreHeader: React.FC = () => {
       {isFashion && (
         <header className="sticky top-0 z-40 bg-[#F6F4F0]/95 backdrop-blur-md border-b border-[#DED9D1] transition-colors">
           {/* Top Announcement Bar */}
-          <div className="bg-[#191918] text-[#F6F4F0] text-[11px] py-1.5 px-4 text-center tracking-[0.15em] uppercase font-medium flex items-center justify-center gap-2">
+          <div className="bg-[#191918] text-[#F6F4F0] text-[11px] py-1.5 px-4 text-center tracking-[0.15em] uppercase font-medium flex items-center justify-center">
             <span>Nova Coleção 2026 — Frete Especial para todo o Brasil</span>
-            <span className="hidden sm:inline text-stone-500">•</span>
-            <Link to="/loja/vitrine-tech" className="hidden sm:inline hover:underline text-stone-300">Ir para Vitrine Tech</Link>
-            <span className="hidden sm:inline text-stone-500">•</span>
-            <Link to="/loja/vitrine-books" className="hidden sm:inline hover:underline text-stone-300">Ir para Vitrine Books</Link>
           </div>
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -74,7 +102,11 @@ export const StoreHeader: React.FC = () => {
 
               {/* Brand Logo */}
               <div className="flex items-center space-x-8">
-                <Link to="/loja/vitrine-moda" className="flex flex-col group">
+                <Link
+                  to="/loja/vitrine-moda"
+                  onClick={() => handleLogoClick('vitrine-moda')}
+                  className="flex flex-col group cursor-pointer"
+                >
                   <span className="font-light tracking-[0.28em] text-lg sm:text-xl text-[#191918] uppercase group-hover:text-stone-600 transition">
                     Vitrine Moda
                   </span>
@@ -88,7 +120,16 @@ export const StoreHeader: React.FC = () => {
                   <Link to="/loja/vitrine-moda?cat=Feminino" className="hover:text-stone-500 transition">Feminino</Link>
                   <Link to="/loja/vitrine-moda?cat=Masculino" className="hover:text-stone-500 transition">Masculino</Link>
                   <Link to="/loja/vitrine-moda?cat=Acessórios" className="hover:text-stone-500 transition">Acessórios</Link>
-                  <Link to="/loja/vitrine-moda" className="hover:text-stone-500 transition text-[#69655F]">Catálogo Completo</Link>
+                  <Link
+                    to="/loja/vitrine-moda#catalogo"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCatalogReset('vitrine-moda');
+                    }}
+                    className="hover:text-stone-500 transition text-[#69655F] cursor-pointer"
+                  >
+                    Catálogo Completo
+                  </Link>
                 </nav>
               </div>
 
@@ -180,7 +221,11 @@ export const StoreHeader: React.FC = () => {
             <div className="flex items-center justify-between h-18 py-3">
               {/* Brand Logo & Geometric Icon */}
               <div className="flex items-center space-x-8">
-                <Link to="/loja/vitrine-tech" className="flex items-center space-x-2.5 group">
+                <Link
+                  to="/loja/vitrine-tech"
+                  onClick={() => handleLogoClick('vitrine-tech')}
+                  className="flex items-center space-x-2.5 group cursor-pointer"
+                >
                   <div className="w-6 h-6 border-2 border-[#15181B] rounded-[3px] flex items-center justify-center group-hover:border-[#155EEF] transition">
                     <div className="w-2.5 h-2.5 bg-[#15181B] group-hover:bg-[#155EEF] transition"></div>
                   </div>
@@ -195,7 +240,16 @@ export const StoreHeader: React.FC = () => {
                   <Link to="/loja/vitrine-tech?cat=Notebooks" className="hover:text-[#155EEF] transition">Notebooks</Link>
                   <Link to="/loja/vitrine-tech?cat=Áudio" className="hover:text-[#155EEF] transition">Áudio</Link>
                   <Link to="/loja/vitrine-tech?cat=Acessórios" className="hover:text-[#155EEF] transition">Acessórios</Link>
-                  <Link to="/loja/vitrine-tech" className="hover:text-[#15181B] transition font-bold text-[#15181B]">Todos os Produtos</Link>
+                  <Link
+                    to="/loja/vitrine-tech#catalogo"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCatalogReset('vitrine-tech');
+                    }}
+                    className="hover:text-[#15181B] transition font-bold text-[#15181B] cursor-pointer"
+                  >
+                    Todos os Produtos
+                  </Link>
                 </nav>
               </div>
 
@@ -300,7 +354,11 @@ export const StoreHeader: React.FC = () => {
             <div className="flex items-center justify-between h-20">
               {/* Brand Logo & Editorial Subtitle */}
               <div className="flex items-center space-x-8">
-                <Link to="/loja/vitrine-books" className="flex items-center space-x-3 group">
+                <Link
+                  to="/loja/vitrine-books"
+                  onClick={() => handleLogoClick('vitrine-books')}
+                  className="flex items-center space-x-3 group cursor-pointer"
+                >
                   <div className="w-9 h-9 rounded-md border border-emerald-400/30 bg-emerald-950/40 flex items-center justify-center text-emerald-200 group-hover:border-emerald-300 transition">
                     <BookOpen className="w-5 h-5" />
                   </div>
@@ -316,7 +374,16 @@ export const StoreHeader: React.FC = () => {
 
                 {/* Navigation: Livros, Autores, Gêneros, Coleções */}
                 <nav className="hidden lg:flex items-center space-x-6 text-xs font-medium text-emerald-100/80">
-                  <Link to="/loja/vitrine-books" className="hover:text-white transition">Livros</Link>
+                  <Link
+                    to="/loja/vitrine-books#catalogo"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCatalogReset('vitrine-books');
+                    }}
+                    className="hover:text-white transition font-semibold text-white cursor-pointer"
+                  >
+                    Livros
+                  </Link>
                   <Link to="/loja/vitrine-books?cat=Literatura" className="hover:text-white transition">Literatura</Link>
                   <Link to="/loja/vitrine-books?cat=Não-Ficção" className="hover:text-white transition">Gêneros</Link>
                   <Link to="/loja/vitrine-books?cat=Clássicos" className="hover:text-white transition">Coleções</Link>
@@ -488,7 +555,16 @@ export const StoreHeader: React.FC = () => {
                     <Link to="/loja/vitrine-moda?cat=Feminino" onClick={() => setMobileMenuOpen(false)}>Feminino</Link>
                     <Link to="/loja/vitrine-moda?cat=Masculino" onClick={() => setMobileMenuOpen(false)}>Masculino</Link>
                     <Link to="/loja/vitrine-moda?cat=Acessórios" onClick={() => setMobileMenuOpen(false)}>Acessórios</Link>
-                    <Link to="/loja/vitrine-moda" onClick={() => setMobileMenuOpen(false)} className="font-bold">Todos os Produtos</Link>
+                    <Link
+                      to="/loja/vitrine-moda#catalogo"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleCatalogReset('vitrine-moda');
+                      }}
+                      className="font-bold text-stone-900"
+                    >
+                      Catálogo Completo
+                    </Link>
                   </div>
                 )}
                 {isTech && (
@@ -497,12 +573,30 @@ export const StoreHeader: React.FC = () => {
                     <Link to="/loja/vitrine-tech?cat=Notebooks" onClick={() => setMobileMenuOpen(false)}>Notebooks</Link>
                     <Link to="/loja/vitrine-tech?cat=Áudio" onClick={() => setMobileMenuOpen(false)}>Áudio</Link>
                     <Link to="/loja/vitrine-tech?cat=Acessórios" onClick={() => setMobileMenuOpen(false)}>Acessórios</Link>
-                    <Link to="/loja/vitrine-tech" onClick={() => setMobileMenuOpen(false)} className="font-bold">Todos os Produtos</Link>
+                    <Link
+                      to="/loja/vitrine-tech#catalogo"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleCatalogReset('vitrine-tech');
+                      }}
+                      className="font-bold text-slate-900"
+                    >
+                      Todos os Produtos
+                    </Link>
                   </div>
                 )}
                 {isBooks && (
                   <div className="flex flex-col space-y-2 text-sm text-stone-800">
-                    <Link to="/loja/vitrine-books" onClick={() => setMobileMenuOpen(false)}>Catálogo de Livros</Link>
+                    <Link
+                      to="/loja/vitrine-books#catalogo"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleCatalogReset('vitrine-books');
+                      }}
+                      className="font-bold text-stone-900"
+                    >
+                      Catálogo de Livros
+                    </Link>
                     <Link to="/loja/vitrine-books?cat=Literatura" onClick={() => setMobileMenuOpen(false)}>Literatura</Link>
                     <Link to="/loja/vitrine-books?cat=Não-Ficção" onClick={() => setMobileMenuOpen(false)}>Não-Ficção</Link>
                     <Link to="/loja/vitrine-books?cat=Clássicos" onClick={() => setMobileMenuOpen(false)}>Clássicos</Link>

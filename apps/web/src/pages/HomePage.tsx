@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { StoreHeader } from '../components/layout/StoreHeader';
+import { LandingHeader } from '../components/layout/LandingHeader';
 import { StoreFooter } from '../components/layout/StoreFooter';
 import { applyStoreTheme } from '../services/theme';
 import {
@@ -57,7 +57,7 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
-      <StoreHeader />
+      <LandingHeader />
 
       <main className="flex-1">
         {/* Commercial Hero */}
@@ -75,37 +75,20 @@ export const HomePage: React.FC = () => {
               Três vitrines especializadas, desenvolvidas com foco na experiência de compra, catálogo dinâmico e checkout unificado e seguro.
             </p>
 
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <Link
-                to="/loja/vitrine-moda"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-md bg-purple-700 hover:bg-purple-800 transition"
+            <div className="mt-8 flex justify-center">
+              <a
+                href="#vitrines"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 font-semibold transition text-sm cursor-pointer shadow-2xs"
               >
-                <ShoppingBag className="w-4 h-4" />
-                <span>Explorar Moda</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
-              <Link
-                to="/loja/vitrine-tech"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-md bg-sky-700 hover:bg-sky-800 transition"
-              >
-                <Cpu className="w-4 h-4" />
-                <span>Explorar Tecnologia</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
-              <Link
-                to="/loja/vitrine-books"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-md bg-amber-800 hover:bg-amber-900 transition"
-              >
-                <BookOpen className="w-4 h-4" />
-                <span>Explorar Livros</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
+                <span>Conhecer as Vitrines</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
             </div>
           </div>
         </section>
 
         {/* Store Selection Cards */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+        <section id="vitrines" className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto scroll-mt-12">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
               Escolha uma Vitrine Especializada

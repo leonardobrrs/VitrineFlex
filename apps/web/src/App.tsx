@@ -19,6 +19,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 
 // Admin Platform Pages
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
+import { AdminStoresPage } from './pages/admin/AdminStoresPage';
 import { AdminFeaturesPage } from './pages/admin/AdminFeaturesPage';
 import { AdminManifestsPage } from './pages/admin/AdminManifestsPage';
 import { AdminVariabilityRulesPage } from './pages/admin/AdminVariabilityRulesPage';
@@ -54,6 +55,7 @@ export const App: React.FC = () => {
                 {/* Admin Platform Routes */}
                 <Route path="/admin" element={<AdminDashboardPage />} />
                 <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+                <Route path="/admin/lojas" element={<AdminStoresPage />} />
                 <Route path="/admin/configurador" element={<ConfiguratorPage />} />
                 <Route path="/admin/features" element={<AdminFeaturesPage />} />
                 <Route path="/admin/manifestos" element={<AdminManifestsPage />} />

@@ -1,12 +1,14 @@
 import json
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 
 from python_common.errors import AppError
-from python_common.security import validate_internal_token, HEADER_INTERNAL_TOKEN
+from python_common.security import validate_internal_token, HEADER_INTERNAL_TOKEN, PERM_STORES_MANAGE
+from python_common.admin_auth import require_permission
 from lps_database import get_db
-from lps_models import Store, ProductManifest
+from lps_models import Store, ProductManifest, StoreAuditLog
 from lps_schemas import (
     StoreCreateRequest,
     StoreUpdateRequest,
@@ -47,7 +49,42 @@ def build_manifest_response(store: Store, manifest: ProductManifest) -> Manifest
         payment_methods=payment_methods,
         fulfillment_modes=fulfillment_modes,
         created_at=manifest.created_at,
+        store_status=store.status or "ACTIVE",
     )
+
+
+def build_store_response(store: Store, manifest: Optional[ProductManifest]) -> StoreResponse:
+    manifest_resp = build_manifest_response(store, manifest) if manifest else None
+    return StoreResponse(
+        id=store.id,
+        slug=store.slug,
+        name=store.name,
+        segment=store.segment,
+        created_at=store.created_at,
+        status=store.status or "ACTIVE",
+        archived_at=store.archived_at,
+        active_features_count=sum(1 for v in manifest_resp.features.values() if v) if manifest_resp else None,
+        current_manifest=manifest_resp,
+    )
+
+
+def latest_active_manifest(db: Session, store_id: str) -> Optional[ProductManifest]:
+    return (
+        db.query(ProductManifest)
+        .filter(ProductManifest.store_id == store_id, ProductManifest.is_active == True)
+        .order_by(ProductManifest.version.desc())
+        .first()
+    )
+
+
+def get_public_store_or_error(db: Session, slug: str) -> Store:
+    """Resolução pública de slug: lojas arquivadas (exclusão lógica) respondem 410 STORE_ARCHIVED."""
+    store = db.query(Store).filter(Store.slug == slug).first()
+    if not store:
+        raise AppError(status_code=404, code="STORE_NOT_FOUND", message=f"Loja '{slug}' não encontrada.")
+    if (store.status or "ACTIVE") != "ACTIVE":
+        raise AppError(status_code=410, code="STORE_ARCHIVED", message=f"A loja '{slug}' não está mais disponível.")
+    return store
 
 
 # --- Public API Routes (/api/v1/lps/*) ---
@@ -205,80 +242,111 @@ def create_store(req: StoreCreateRequest, db: Session = Depends(get_db)):
 
 @router.get("/api/v1/lps/stores", response_model=List[StoreResponse])
 def list_stores(db: Session = Depends(get_db)):
-    stores = db.query(Store).all()
-    result: List[StoreResponse] = []
+    """Lista pública: somente lojas ACTIVE (lojas arquivadas saem da homepage, do configurador etc.)."""
+    stores = db.query(Store).filter(Store.status == "ACTIVE").all()
+    return [build_store_response(s, latest_active_manifest(db, s.id)) for s in stores]
 
-    for s in stores:
-        latest_manifest = (
-            db.query(ProductManifest)
-            .filter(ProductManifest.store_id == s.id, ProductManifest.is_active == True)
-            .order_by(ProductManifest.version.desc())
-            .first()
-        )
-        manifest_resp = build_manifest_response(s, latest_manifest) if latest_manifest else None
-        result.append(
-            StoreResponse(
-                id=s.id,
-                slug=s.slug,
-                name=s.name,
-                segment=s.segment,
-                created_at=s.created_at,
-                current_manifest=manifest_resp,
-            )
-        )
 
-    return result
+@router.get("/api/v1/lps/admin/stores", response_model=List[StoreResponse])
+def admin_list_stores(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+):
+    """Lista administrativa: todas as lojas, inclusive arquivadas. Exige permissão stores:manage."""
+    require_permission(authorization, PERM_STORES_MANAGE)
+    stores = db.query(Store).order_by(Store.created_at.asc()).all()
+    return [build_store_response(s, latest_active_manifest(db, s.id)) for s in stores]
+
+
+def _set_store_status(db: Session, store_id: str, new_status: str, authorization: Optional[str]) -> StoreResponse:
+    actor = require_permission(authorization, PERM_STORES_MANAGE)
+    store = db.query(Store).filter(Store.id == store_id).first()
+    if not store:
+        raise AppError(status_code=404, code="STORE_NOT_FOUND", message=f"Loja '{store_id}' não encontrada.")
+    if (store.status or "ACTIVE") == new_status:
+        raise AppError(
+            status_code=409,
+            code="STORE_STATUS_UNCHANGED",
+            message=f"A loja já está {'ativa' if new_status == 'ACTIVE' else 'arquivada'}.",
+        )
+    store.status = new_status
+    store.archived_at = None if new_status == "ACTIVE" else datetime.now(timezone.utc)
+    store.archived_by = None if new_status == "ACTIVE" else actor["id"]
+    db.add(
+        StoreAuditLog(
+            store_id=store.id,
+            store_slug=store.slug,
+            actor_id=actor["id"],
+            actor_email=actor.get("email"),
+            action="STORE_RESTORED" if new_status == "ACTIVE" else "STORE_ARCHIVED",
+        )
+    )
+    db.commit()
+    db.refresh(store)
+    return build_store_response(store, latest_active_manifest(db, store.id))
+
+
+@router.post("/api/v1/lps/admin/stores/{store_id}/archive", response_model=StoreResponse)
+def archive_store(
+    store_id: str,
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+):
+    """Exclusão LÓGICA: nada é apagado (manifestos, catálogo, pedidos e financeiro são preservados)."""
+    return _set_store_status(db, store_id, "ARCHIVED", authorization)
+
+
+@router.post("/api/v1/lps/admin/stores/{store_id}/restore", response_model=StoreResponse)
+def restore_store(
+    store_id: str,
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+):
+    return _set_store_status(db, store_id, "ACTIVE", authorization)
+
+
+@router.get("/api/v1/lps/admin/store-audit-logs")
+def list_store_audit_logs(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+):
+    require_permission(authorization, PERM_STORES_MANAGE)
+    rows = db.query(StoreAuditLog).order_by(StoreAuditLog.created_at.desc()).limit(100).all()
+    return [
+        {
+            "id": r.id,
+            "store_id": r.store_id,
+            "store_slug": r.store_slug,
+            "actor_id": r.actor_id,
+            "actor_email": r.actor_email,
+            "action": r.action,
+            "created_at": r.created_at,
+        }
+        for r in rows
+    ]
 
 
 @router.get("/api/v1/lps/stores/{slug}/manifest", response_model=ManifestResponse)
 def get_store_manifest_by_slug(slug: str, db: Session = Depends(get_db)):
-    store = db.query(Store).filter(Store.slug == slug).first()
-    if not store:
-        raise AppError(status_code=404, code="STORE_NOT_FOUND", message=f"Loja '{slug}' não encontrada.")
-
-    latest_manifest = (
-        db.query(ProductManifest)
-        .filter(ProductManifest.store_id == store.id, ProductManifest.is_active == True)
-        .order_by(ProductManifest.version.desc())
-        .first()
-    )
+    store = get_public_store_or_error(db, slug)
+    latest_manifest = latest_active_manifest(db, store.id)
     if not latest_manifest:
         raise AppError(status_code=404, code="MANIFEST_NOT_FOUND", message="Manifesto ativo não encontrado para a loja.")
-
     return build_manifest_response(store, latest_manifest)
 
 
 @router.get("/api/v1/lps/stores/{slug}", response_model=StoreResponse)
 def get_store_by_slug(slug: str, db: Session = Depends(get_db)):
-    store = db.query(Store).filter(Store.slug == slug).first()
-    if not store:
-        raise AppError(status_code=404, code="STORE_NOT_FOUND", message=f"Loja '{slug}' não encontrada.")
-
-    latest_manifest = (
-        db.query(ProductManifest)
-        .filter(ProductManifest.store_id == store.id, ProductManifest.is_active == True)
-        .order_by(ProductManifest.version.desc())
-        .first()
-    )
+    store = get_public_store_or_error(db, slug)
+    latest_manifest = latest_active_manifest(db, store.id)
     if not latest_manifest:
         raise AppError(status_code=404, code="MANIFEST_NOT_FOUND", message="Manifesto ativo não encontrado para a loja.")
-
-    return StoreResponse(
-        id=store.id,
-        slug=store.slug,
-        name=store.name,
-        segment=store.segment,
-        created_at=store.created_at,
-        current_manifest=build_manifest_response(store, latest_manifest),
-    )
+    return build_store_response(store, latest_manifest)
 
 
 @router.get("/api/v1/lps/stores/{slug}/manifests", response_model=List[ManifestResponse])
 def get_store_manifest_history(slug: str, db: Session = Depends(get_db)):
-    store = db.query(Store).filter(Store.slug == slug).first()
-    if not store:
-        raise AppError(status_code=404, code="STORE_NOT_FOUND", message=f"Loja '{slug}' não encontrada.")
-
+    store = get_public_store_or_error(db, slug)
     manifests = (
         db.query(ProductManifest)
         .filter(ProductManifest.store_id == store.id)
@@ -293,6 +361,12 @@ def update_store_manifest(store_id: str, req: StoreUpdateRequest, db: Session = 
     store = db.query(Store).filter(Store.id == store_id).first()
     if not store:
         raise AppError(status_code=404, code="STORE_NOT_FOUND", message=f"Loja '{store_id}' não encontrada.")
+    if (store.status or "ACTIVE") != "ACTIVE":
+        raise AppError(
+            status_code=409,
+            code="STORE_ARCHIVED",
+            message="Loja arquivada não pode ser reconfigurada. Reative-a primeiro.",
+        )
 
     val_result = validate_configuration(
         segment=store.segment,
@@ -365,3 +439,4 @@ def get_internal_store_manifest(
         raise AppError(status_code=404, code="MANIFEST_NOT_FOUND", message="Manifesto ativo não encontrado.")
 
     return build_manifest_response(store, latest_manifest)
+
