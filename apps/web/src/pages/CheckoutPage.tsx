@@ -3,6 +3,9 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import { useCart } from '../context/CartContext';
+import { StoreHeader } from '../components/layout/StoreHeader';
+import { StoreFooter } from '../components/layout/StoreFooter';
+import { resolveStoreTheme, applyStoreTheme } from '../services/theme';
 import { ShippingOption } from '../types';
 import {
   ShieldCheck,
@@ -60,6 +63,15 @@ export const CheckoutPage: React.FC = () => {
   useEffect(() => {
     setIdempotencyKey(`idemp-web-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
   }, []);
+
+  // Sync active theme
+  useEffect(() => {
+    if (slug) {
+      applyStoreTheme(resolveStoreTheme(slug));
+    } else if (manifest?.segment) {
+      applyStoreTheme(resolveStoreTheme(manifest.segment));
+    }
+  }, [slug, manifest]);
 
   // Fetch Shipping Options
   const calculateShipping = async (zip: string) => {
@@ -331,7 +343,9 @@ export const CheckoutPage: React.FC = () => {
   const total = subtotal + shippingCost;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="flex flex-col min-h-screen bg-theme-bg">
+      <StoreHeader />
+      <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full">
       {/* Stepper Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
@@ -798,6 +812,8 @@ export const CheckoutPage: React.FC = () => {
           </div>
         </div>
       </div>
+      </main>
+      <StoreFooter />
     </div>
   );
 };

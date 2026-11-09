@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
+import { StoreHeader } from '../components/layout/StoreHeader';
+import { StoreFooter } from '../components/layout/StoreFooter';
+import { resolveStoreTheme, applyStoreTheme } from '../services/theme';
 import { Order } from '../types';
 import {
   Package,
@@ -28,6 +31,14 @@ export const OrdersPage: React.FC = () => {
 
   const storeId = manifest?.store_id || manifest?.store_slug || slug || 'vitrine-tech';
   const primaryColor = manifest?.theme_colors?.primary || '#1e40af';
+
+  useEffect(() => {
+    if (slug) {
+      applyStoreTheme(resolveStoreTheme(slug));
+    } else if (manifest?.segment) {
+      applyStoreTheme(resolveStoreTheme(manifest.segment));
+    }
+  }, [slug, manifest]);
 
   useEffect(() => {
     if (!token) {
@@ -103,27 +114,33 @@ export const OrdersPage: React.FC = () => {
 
   if (!token) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
-          <Lock className="w-8 h-8" />
+      <div className="flex flex-col min-h-screen bg-theme-bg">
+        <StoreHeader />
+        <div className="flex-1 max-w-2xl mx-auto px-4 py-20 text-center flex flex-col items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-theme-surface rounded-full flex items-center justify-center text-theme-muted border border-theme-border">
+            <Lock className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-bold text-theme-text">Acesso Restrito</h2>
+          <p className="text-theme-muted mt-2 mb-6 text-sm">
+            Faça login para acompanhar e visualizar seus pedidos nesta loja.
+          </p>
+          <Link
+            to="/login"
+            style={{ backgroundColor: primaryColor }}
+            className="inline-flex items-center gap-2 text-white font-semibold px-6 py-3 rounded-lg shadow-sm hover:opacity-90 transition"
+          >
+            Entrar na Minha Conta
+          </Link>
         </div>
-        <h2 className="text-2xl font-bold text-slate-900">Acesso Restrito</h2>
-        <p className="text-slate-500 mt-2 mb-6 text-sm">
-          Faça login para acompanhar e visualizar seus pedidos nesta loja.
-        </p>
-        <Link
-          to="/login"
-          style={{ backgroundColor: primaryColor }}
-          className="inline-flex items-center gap-2 text-white font-semibold px-6 py-3 rounded-lg shadow-sm hover:opacity-90 transition"
-        >
-          Entrar na Minha Conta
-        </Link>
+        <StoreFooter />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="flex flex-col min-h-screen bg-theme-bg">
+      <StoreHeader />
+      <main className="flex-1 max-w-4xl mx-auto px-4 py-8 w-full">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2.5">
@@ -249,6 +266,8 @@ export const OrdersPage: React.FC = () => {
           ))}
         </div>
       )}
+      </main>
+      <StoreFooter />
     </div>
   );
 };

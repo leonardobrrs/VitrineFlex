@@ -89,7 +89,7 @@ export const ProfilePage: React.FC = () => {
 
   if (authLoading || !user) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen bg-theme-bg">
         <StoreHeader />
         <div className="flex-1 flex items-center justify-center">
           <p className="text-slate-500 font-medium">Carregando perfil...</p>
@@ -100,7 +100,7 @@ export const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-theme-bg">
       <StoreHeader />
 
       <main className="flex-1 max-w-4xl mx-auto px-4 py-8 w-full">

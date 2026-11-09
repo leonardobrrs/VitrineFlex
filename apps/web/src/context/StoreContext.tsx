@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { StoreManifest } from '../types';
+import { StoreTheme, resolveStoreTheme, applyStoreTheme } from '../services/theme';
 
 interface StoreContextType {
   manifest: StoreManifest | null;
   loading: boolean;
   error: string | null;
+  theme: StoreTheme;
+  setTheme: (t: StoreTheme) => void;
   hasFeature: (featureName: string) => boolean;
   loadStoreBySlug: (slug: string) => Promise<void>;
 }
@@ -13,6 +16,8 @@ const StoreContext = createContext<StoreContextType>({
   manifest: null,
   loading: true,
   error: null,
+  theme: 'neutral',
+  setTheme: () => {},
   hasFeature: () => false,
   loadStoreBySlug: async () => {},
 });
@@ -21,27 +26,35 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [manifest, setManifest] = useState<StoreManifest | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [theme, setThemeState] = useState<StoreTheme>('neutral');
 
-  const applyThemeColors = (primary?: string, secondary?: string, _fontFamily?: string) => {
-    if (primary) {
-      document.documentElement.style.setProperty('--primary-color', primary);
-    }
-    if (secondary) {
-      document.documentElement.style.setProperty('--secondary-color', secondary);
-    }
-    // Identidade tipográfica única para toda a aplicação (ETAPA 1)
-    const unifiedFont = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    document.documentElement.style.setProperty('--font-family', unifiedFont);
-    document.body.style.fontFamily = unifiedFont;
+  const setTheme = (newTheme: StoreTheme) => {
+    setThemeState(newTheme);
+    applyStoreTheme(newTheme);
+  };
+
+  const canonicalSlug = (raw: string): string => {
+    const map: Record<string, string> = {
+      moda: 'vitrine-moda',
+      fashion: 'vitrine-moda',
+      tech: 'vitrine-tech',
+      livros: 'vitrine-books',
+      books: 'vitrine-books',
+    };
+    return map[raw.toLowerCase()] || raw;
   };
 
   const loadStoreBySlug = async (slug: string) => {
+    const resolvedSlug = canonicalSlug(slug);
+    const resolvedTheme = resolveStoreTheme(resolvedSlug);
+    setTheme(resolvedTheme);
+
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/lps/stores/${slug}/manifest`);
+      const res = await fetch(`http://localhost:8000/api/v1/lps/stores/${resolvedSlug}/manifest`);
       if (!res.ok) {
-        throw new Error(`Manifesto da loja '${slug}' não encontrado no LPS Config Service`);
+        throw new Error(`Manifesto da loja '${resolvedSlug}' não encontrado no LPS Config Service`);
       }
       const data = await res.json();
       const storeObj = {
@@ -54,14 +67,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ...data,
         store: storeObj,
       });
-      applyThemeColors(
-        data.theme?.primary_color,
-        data.theme?.secondary_color,
-        data.theme?.font_family
-      );
+      const segmentTheme = resolveStoreTheme(data.segment || resolvedSlug);
+      setTheme(segmentTheme);
     } catch (err: any) {
       console.warn('Fallback para fixture mock local:', err.message);
-      // Fallback to local dev fixture
       loadFixture();
     } finally {
       setLoading(false);
@@ -75,7 +84,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return res.json();
       })
       .then((data: any) => {
-        // Adapt fixture format to StoreManifest
         const adapted: StoreManifest = {
           schema_version: data.schema_version || '1.1.0',
           version: data.manifest_version || 1,
@@ -96,7 +104,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           theme: data.theme,
         };
         setManifest(adapted);
-        applyThemeColors(adapted.theme?.primary_color, adapted.theme?.secondary_color);
+        setTheme(resolveStoreTheme(adapted.segment));
         setLoading(false);
       })
       .catch((err) => {
@@ -106,7 +114,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   useEffect(() => {
-    // Attempt to load first store or fallback to fixture
     loadFixture();
   }, []);
 
@@ -116,10 +123,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <StoreContext.Provider value={{ manifest, loading, error, hasFeature, loadStoreBySlug }}>
+    <StoreContext.Provider value={{ manifest, loading, error, theme, setTheme, hasFeature, loadStoreBySlug }}>
       {children}
     </StoreContext.Provider>
   );
 };
 
 export const useStore = () => useContext(StoreContext);
+

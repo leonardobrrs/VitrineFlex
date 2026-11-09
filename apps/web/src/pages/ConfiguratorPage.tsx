@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Sliders,
   CheckCircle2,
   AlertTriangle,
   Store as StoreIcon,
@@ -14,6 +13,7 @@ import {
 import { Link } from 'react-router-dom';
 import { Store, StoreSegment } from '../types';
 import { api } from '../services/api';
+import { AdminLayout } from '../components/admin/AdminLayout';
 
 interface FeatureMeta {
   key: string;
@@ -344,41 +344,27 @@ export const ConfiguratorPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      {/* Header */}
-      <div className="border-b border-slate-200 pb-5">
-        <div className="flex items-center gap-2 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-1.5">
-          <Sliders className="w-4 h-4 text-indigo-600" />
-          Engenharia de Domínio da LPS VitrineFlex
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Configurador de Derivação & Gestão de Manifestos
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl">
-              Configure instâncias de e-commerce gerenciando a matriz completa de 23 features formais,
-              aplicando restrições cruzadas (CTC-01 a CTC-18) e versionamento de ProductManifest.
-            </p>
+    <AdminLayout
+      title="Configurador de Derivação & Gestão de Manifestos"
+      subtitle="Configure instâncias de e-commerce gerenciando a matriz de 23 features formais e versionamento de ProductManifest"
+      breadcrumbs={[{ label: 'Configurador' }]}
+      actions={
+        editingStoreId ? (
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg text-xs text-amber-900">
+            <Edit3 className="w-3.5 h-3.5 text-amber-600" />
+            <span className="font-semibold">Editando loja</span>
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="ml-2 font-bold underline hover:text-amber-950"
+            >
+              Cancelar
+            </button>
           </div>
-
-          {editingStoreId && (
-            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl text-xs text-amber-900">
-              <Edit3 className="w-4 h-4 text-amber-600" />
-              <span>Editando loja existente</span>
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="ml-2 font-bold underline hover:text-amber-950"
-              >
-                Cancelar
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        ) : undefined
+      }
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Form Column */}
         <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-7">
           <form onSubmit={handleSubmit} className="space-y-7">
@@ -817,6 +803,6 @@ export const ConfiguratorPage: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };

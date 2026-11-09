@@ -17,6 +17,17 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
+// Admin Platform Pages
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
+import { AdminFeaturesPage } from './pages/admin/AdminFeaturesPage';
+import { AdminManifestsPage } from './pages/admin/AdminManifestsPage';
+import { AdminVariabilityRulesPage } from './pages/admin/AdminVariabilityRulesPage';
+import { AdminMicroservicesPage } from './pages/admin/AdminMicroservicesPage';
+import { AdminDatabasesPage } from './pages/admin/AdminDatabasesPage';
+import { AdminLogsPage } from './pages/admin/AdminLogsPage';
+import { AdminUsersPage } from './pages/admin/AdminUsersPage';
+import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
+
 const queryClient = new QueryClient();
 
 export const App: React.FC = () => {
@@ -28,6 +39,7 @@ export const App: React.FC = () => {
             <BrowserRouter>
               <CartDrawer />
               <Routes>
+                {/* Public Store & Consumer Routes */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/loja/:slug" element={<StorePage />} />
                 <Route path="/loja/:slug/produto/:productId" element={<ProductPage />} />
@@ -38,8 +50,22 @@ export const App: React.FC = () => {
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/cadastro" element={<RegisterPage />} />
                 <Route path="/perfil" element={<ProfilePage />} />
-                <Route path="/admin/diagnostico" element={<DiagnosticsPage />} />
+
+                {/* Admin Platform Routes */}
+                <Route path="/admin" element={<AdminDashboardPage />} />
+                <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
                 <Route path="/admin/configurador" element={<ConfiguratorPage />} />
+                <Route path="/admin/features" element={<AdminFeaturesPage />} />
+                <Route path="/admin/manifestos" element={<AdminManifestsPage />} />
+                <Route path="/admin/regras" element={<AdminVariabilityRulesPage />} />
+                <Route path="/admin/diagnostico" element={<DiagnosticsPage />} />
+                <Route path="/admin/microsservicos" element={<AdminMicroservicesPage />} />
+                <Route path="/admin/bancos" element={<AdminDatabasesPage />} />
+                <Route path="/admin/logs" element={<AdminLogsPage />} />
+                <Route path="/admin/usuarios" element={<AdminUsersPage />} />
+                <Route path="/admin/configuracoes" element={<AdminSettingsPage />} />
+
+                {/* Fallback */}
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </BrowserRouter>
