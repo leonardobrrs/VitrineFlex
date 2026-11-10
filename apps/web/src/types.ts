@@ -239,4 +239,21 @@ export interface TechnicalFiltersResponse {
   filters: TechnicalFilterGroup[];
 }
 
+export const getStoreDisplayName = (storeId?: string | null): string => {
+  if (!storeId) return '';
+  switch (storeId) {
+    case 'store-fashion':
+    case 'vitrine-moda':
+      return 'Vitrine Moda';
+    case 'store-tech':
+    case 'vitrine-tech':
+      return 'Vitrine Tech';
+    case 'store-books':
+    case 'vitrine-books':
+      return 'Vitrine Books';
+    default:
+      return storeId;
+  }
+};
+
 

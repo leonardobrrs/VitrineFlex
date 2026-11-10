@@ -4,6 +4,7 @@ import { useStore } from '../../context/StoreContext';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { resolveStoreTheme, StoreTheme } from '../../services/theme';
+import { getStoreDisplayName } from '../../types';
 import {
   User as UserIcon,
   ShoppingCart,
@@ -15,6 +16,7 @@ import {
   X,
   Layers,
   LogOut,
+  PackagePlus,
 } from 'lucide-react';
 
 export const StoreHeader: React.FC = () => {
@@ -161,6 +163,32 @@ export const StoreHeader: React.FC = () => {
                   </Link>
                 )}
 
+                {user?.role === 'STORE_ADMIN' && (
+                  <Link
+                    to="/gestao-loja/estoque"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#191918] px-2.5 py-1.5 rounded-full bg-stone-200/80 hover:bg-stone-300/90 border border-stone-300 transition"
+                    title={`Estoque da minha loja — ${getStoreDisplayName(user.store_id)}`}
+                  >
+                    <PackagePlus className="w-4 h-4 text-[#191918]" />
+                    <span className="hidden sm:inline">Estoque da minha loja</span>
+                    {user.store_id && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-stone-300 text-[#191918]">
+                        {getStoreDisplayName(user.store_id)}
+                      </span>
+                    )}
+                  </Link>
+                )}
+                {user?.role === 'LPS_ADMIN' && (
+                  <Link
+                    to="/gestao-loja/estoque"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#191918] px-2.5 py-1 rounded-full hover:bg-stone-200/60 border border-stone-300/60 transition"
+                    title="Gestão de Estoque (Plataforma)"
+                  >
+                    <PackagePlus className="w-4 h-4 text-[#191918]" />
+                    <span className="hidden sm:inline">Estoque</span>
+                  </Link>
+                )}
+
                 {user ? (
                   <div className="flex items-center space-x-1">
                     <Link
@@ -300,6 +328,32 @@ export const StoreHeader: React.FC = () => {
                     title="Favoritos"
                   >
                     <Heart className="w-5 h-5" />
+                  </Link>
+                )}
+
+                {user?.role === 'STORE_ADMIN' && (
+                  <Link
+                    to="/gestao-loja/estoque"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#155EEF] px-2.5 py-1.5 rounded-md bg-blue-50 hover:bg-blue-100 border border-blue-200 transition"
+                    title={`Estoque da minha loja — ${getStoreDisplayName(user.store_id)}`}
+                  >
+                    <PackagePlus className="w-4 h-4 text-[#155EEF]" />
+                    <span className="hidden sm:inline">Estoque da minha loja</span>
+                    {user.store_id && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-[#155EEF]">
+                        {getStoreDisplayName(user.store_id)}
+                      </span>
+                    )}
+                  </Link>
+                )}
+                {user?.role === 'LPS_ADMIN' && (
+                  <Link
+                    to="/gestao-loja/estoque"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#15181B] px-2.5 py-1.5 bg-[#F5F6F7] hover:bg-[#EEF0F2] rounded-md transition"
+                    title="Gestão de Estoque (Plataforma)"
+                  >
+                    <PackagePlus className="w-4 h-4 text-[#626B75]" />
+                    <span className="hidden sm:inline">Estoque</span>
                   </Link>
                 )}
 
@@ -450,6 +504,32 @@ export const StoreHeader: React.FC = () => {
                   </Link>
                 )}
 
+                {user?.role === 'STORE_ADMIN' && (
+                  <Link
+                    to="/gestao-loja/estoque"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-100 px-2.5 py-1.5 rounded-full bg-emerald-900/60 hover:bg-emerald-900/90 border border-emerald-700/60 transition"
+                    title={`Estoque da minha loja — ${getStoreDisplayName(user.store_id)}`}
+                  >
+                    <PackagePlus className="w-4 h-4 text-emerald-300" />
+                    <span className="hidden sm:inline">Estoque da minha loja</span>
+                    {user.store_id && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-800 text-emerald-200">
+                        {getStoreDisplayName(user.store_id)}
+                      </span>
+                    )}
+                  </Link>
+                )}
+                {user?.role === 'LPS_ADMIN' && (
+                  <Link
+                    to="/gestao-loja/estoque"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-100 px-2.5 py-1 rounded-full bg-emerald-900/40 hover:bg-emerald-900/70 border border-emerald-700/40 transition"
+                    title="Gestão de Estoque (Plataforma)"
+                  >
+                    <PackagePlus className="w-4 h-4 text-emerald-300" />
+                    <span className="hidden sm:inline">Estoque</span>
+                  </Link>
+                )}
+
                 {user ? (
                   <div className="flex items-center space-x-1.5">
                     <Link
@@ -536,13 +616,37 @@ export const StoreHeader: React.FC = () => {
                 <Link to="/loja/vitrine-moda" className="hover:text-purple-700 transition">Vitrine Moda</Link>
                 <Link to="/loja/vitrine-tech" className="hover:text-sky-700 transition">Vitrine Tech</Link>
                 <Link to="/loja/vitrine-books" className="hover:text-amber-800 transition">Vitrine Books</Link>
-                <Link to="/admin/dashboard" className="text-blue-600 hover:underline flex items-center gap-1 font-bold">
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>Painel Admin</span>
-                </Link>
+                {user?.role === 'LPS_ADMIN' && (
+                  <>
+                    <Link to="/admin/dashboard" className="text-blue-600 hover:underline flex items-center gap-1 font-bold">
+                      <Layers className="w-3.5 h-3.5" />
+                      <span>Painel Admin</span>
+                    </Link>
+                    <Link to="/gestao-loja/estoque" className="text-slate-700 hover:text-blue-600 flex items-center gap-1 font-bold">
+                      <PackagePlus className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Gestão de Estoque</span>
+                    </Link>
+                  </>
+                )}
               </nav>
 
               <div className="flex items-center space-x-3">
+                {user?.role === 'STORE_ADMIN' && (
+                  <Link
+                    to="/gestao-loja/estoque"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 transition"
+                    title={`Estoque da minha loja — ${getStoreDisplayName(user.store_id)}`}
+                  >
+                    <PackagePlus className="w-4 h-4 text-blue-600" />
+                    <span className="hidden sm:inline">Estoque da minha loja</span>
+                    {user.store_id && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-800">
+                        {getStoreDisplayName(user.store_id)}
+                      </span>
+                    )}
+                  </Link>
+                )}
+
                 {user ? (
                   <div className="flex items-center space-x-2">
                     <Link to="/perfil" className="text-xs font-semibold text-slate-800 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
@@ -680,17 +784,47 @@ export const StoreHeader: React.FC = () => {
                 </div>
               </div>
 
-              {/* Admin Portal link */}
-              <div className="border-t border-slate-100 pt-4">
-                <Link
-                  to="/admin/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 text-xs font-bold text-blue-600 hover:underline"
-                >
-                  <Layers className="w-4 h-4" />
-                  <span>Acessar Painel Administrativo</span>
-                </Link>
-              </div>
+              {/* Operational & Admin Links (Restricted by Role) */}
+              {user?.role === 'STORE_ADMIN' && (
+                <div className="border-t border-slate-100 pt-3">
+                  <Link
+                    to="/gestao-loja/estoque"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-950 font-bold text-xs hover:bg-blue-100 transition"
+                  >
+                    <div className="flex items-center gap-2">
+                      <PackagePlus className="w-4 h-4 text-blue-600" />
+                      <span>Estoque da minha loja</span>
+                    </div>
+                    {user.store_id && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-200 text-blue-900">
+                        {getStoreDisplayName(user.store_id)}
+                      </span>
+                    )}
+                  </Link>
+                </div>
+              )}
+
+              {user?.role === 'LPS_ADMIN' && (
+                <div className="border-t border-slate-100 pt-3 space-y-2">
+                  <Link
+                    to="/admin/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 text-xs font-bold text-blue-600 hover:underline"
+                  >
+                    <Layers className="w-4 h-4" />
+                    <span>Acessar Painel Administrativo</span>
+                  </Link>
+                  <Link
+                    to="/gestao-loja/estoque"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-blue-600"
+                  >
+                    <PackagePlus className="w-4 h-4 text-slate-500" />
+                    <span>Gestão de Estoque</span>
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* User Session */}
@@ -699,7 +833,7 @@ export const StoreHeader: React.FC = () => {
                 <div className="space-y-2">
                   <div className="text-xs font-bold text-slate-800">{user.name}</div>
                   <div className="text-[11px] text-slate-500">{user.email}</div>
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex flex-wrap gap-2 pt-2">
                     <Link
                       to="/perfil"
                       onClick={() => setMobileMenuOpen(false)}
@@ -707,6 +841,16 @@ export const StoreHeader: React.FC = () => {
                     >
                       Meu Perfil
                     </Link>
+                    {user.role === 'STORE_ADMIN' && (
+                      <Link
+                        to="/gestao-loja/estoque"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-xs font-semibold px-3 py-1.5 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 flex items-center gap-1"
+                      >
+                        <PackagePlus className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Estoque da minha loja</span>
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         setMobileMenuOpen(false);

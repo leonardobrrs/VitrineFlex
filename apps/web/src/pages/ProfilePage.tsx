@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import { StoreHeader } from '../components/layout/StoreHeader';
 import { StoreFooter } from '../components/layout/StoreFooter';
-import { Tag, Plus, X, Check, AlertCircle } from 'lucide-react';
+import { Tag, Plus, X, Check, AlertCircle, PackagePlus, Layers, Store } from 'lucide-react';
+import { getStoreDisplayName } from '../types';
 
 export const ProfilePage: React.FC = () => {
   const { user, token, loading: authLoading } = useAuth();
@@ -115,12 +116,72 @@ export const ProfilePage: React.FC = () => {
             <div>
               <h1 className="text-2xl font-bold text-slate-900">{user.name}</h1>
               <p className="text-sm text-slate-500">{user.email}</p>
-              <span className="inline-block mt-1 text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800">
-                Papel: {user.role}
-              </span>
+              <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800">
+                  Papel: {user.role}
+                </span>
+                {user.role === 'STORE_ADMIN' && user.store_id && (
+                  <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1">
+                    <Store className="w-3 h-3 text-blue-600" />
+                    <span>Loja: {getStoreDisplayName(user.store_id)}</span>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Operational / Administrative Area for STORE_ADMIN & LPS_ADMIN */}
+        {user.role === 'STORE_ADMIN' && (
+          <div className="bg-blue-50/80 p-6 rounded-2xl border border-blue-200 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-blue-900 font-bold text-base">
+                <PackagePlus className="w-5 h-5 text-blue-600" />
+                <span>Gestão Operacional de Estoque</span>
+              </div>
+              <p className="text-xs text-blue-700">
+                Você é o gestor responsável por <strong>{getStoreDisplayName(user.store_id)}</strong>. Acesse a área de inventário para repor e gerenciar o estoque.
+              </p>
+            </div>
+            <Link
+              to="/gestao-loja/estoque"
+              className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition shadow-sm flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <PackagePlus className="w-4 h-4" />
+              <span>Estoque da minha loja</span>
+            </Link>
+          </div>
+        )}
+
+        {user.role === 'LPS_ADMIN' && (
+          <div className="bg-purple-50/80 p-6 rounded-2xl border border-purple-200 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-purple-900 font-bold text-base">
+                <Layers className="w-5 h-5 text-purple-600" />
+                <span>Administração da Plataforma LPS</span>
+              </div>
+              <p className="text-xs text-purple-700">
+                Acesso global para gerenciar lojas, manifestos, regras CTC, usuários e estoque de todos os domínios.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Link
+                to="/admin/dashboard"
+                className="px-3.5 py-2 bg-purple-700 text-white rounded-xl text-xs font-bold hover:bg-purple-800 transition shadow-sm flex items-center gap-1.5 whitespace-nowrap"
+              >
+                <Layers className="w-4 h-4" />
+                <span>Painel Admin</span>
+              </Link>
+              <Link
+                to="/gestao-loja/estoque"
+                className="px-3.5 py-2 bg-white text-purple-900 border border-purple-300 rounded-xl text-xs font-bold hover:bg-purple-100 transition shadow-sm flex items-center gap-1.5 whitespace-nowrap"
+              >
+                <PackagePlus className="w-4 h-4 text-purple-700" />
+                <span>Gestão de Estoque</span>
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Categories of Interest */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">

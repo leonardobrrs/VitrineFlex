@@ -21,7 +21,7 @@ PYTHON_EXE = os.path.join(ROOT_DIR, ".venv", "Scripts", "python.exe")
 if not os.path.exists(PYTHON_EXE):
     PYTHON_EXE = sys.executable
 
-SHARED_SRC = os.path.join(ROOT_DIR, "packages", "shared", "src")
+SHARED_SRC = os.path.join(ROOT_DIR, "packages", "python-common")
 
 processes = []
 

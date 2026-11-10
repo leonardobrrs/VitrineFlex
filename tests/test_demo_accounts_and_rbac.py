@@ -12,6 +12,8 @@ from auth_models import User, UserPreference, UserAuditLog
 from catalog_app import app as catalog_app
 from catalog_database import SessionFactory as CatalogSession, init_db as init_catalog_db
 from catalog_models import Product, InventoryMovement
+import python_common.admin_auth as admin_auth
+import catalog_routes
 from catalog_routes import manifest_provider as catalog_manifest_provider
 from lps_database import SessionFactory as LpsSession, init_db as init_lps_db
 from lps_models import Store, ProductManifest
@@ -20,7 +22,7 @@ from python_common.security import verify_password, get_internal_service_key, HE
 
 
 @pytest.fixture(autouse=True)
-def clean_dbs():
+def clean_dbs(monkeypatch):
     init_auth_db()
     init_lps_db()
     init_catalog_db()
@@ -38,6 +40,20 @@ def clean_dbs():
         s.query(Product).delete()
         s.commit()
     catalog_manifest_provider.clear_cache()
+
+    # Redireciona a consulta inter-serviço fetch_user_authz para o Auth em processo,
+    # garantindo isolamento de teste mesmo se o backend de desenvolvimento estiver rodando na porta 8001.
+    def _in_process_fetch_user_authz(user_id: str):
+        c = TestClient(auth_app)
+        r = c.get(
+            f"/internal/v1/auth/users/{user_id}/authz",
+            headers={HEADER_INTERNAL_TOKEN: get_internal_service_key()},
+        )
+        return r.json() if r.status_code == 200 else None
+
+    monkeypatch.setattr(admin_auth, "fetch_user_authz", _in_process_fetch_user_authz)
+    monkeypatch.setattr(catalog_routes, "fetch_user_authz", _in_process_fetch_user_authz)
+
     yield
 
 
