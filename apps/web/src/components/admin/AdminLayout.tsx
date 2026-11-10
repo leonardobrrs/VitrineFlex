@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Sliders,
@@ -20,8 +20,10 @@ import {
   BookOpen,
   Laptop,
   Shirt,
+  LogOut,
 } from 'lucide-react';
 import { applyStoreTheme } from '../../services/theme';
+import { useAuth } from '../../context/AuthContext';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -39,6 +41,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   actions,
 }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Lock admin theme on mount
@@ -257,6 +261,28 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
             {/* Context Actions */}
             {actions}
+
+            {/* Admin User Info & Logout Button */}
+            {user && (
+              <div className="flex items-center gap-2 pl-3 border-l border-slate-200">
+                <div className="hidden md:flex flex-col text-right">
+                  <span className="text-xs font-bold text-slate-900 leading-tight">{user.name}</span>
+                  <span className="text-[10px] font-mono text-purple-700 font-bold">{user.role}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    navigate('/login');
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:text-rose-700 hover:bg-rose-50 hover:border-rose-200 transition"
+                  title="Encerrar sessão administrativa"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Sair</span>
+                </button>
+              </div>
+            )}
           </div>
         </header>
 

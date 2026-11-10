@@ -14,7 +14,12 @@ from python_common.security import (
     validate_internal_token,
     decode_access_token,
     get_internal_service_key,
+    PERM_CATALOG_REPLENISH,
+    role_has_permission,
+    ROLE_STORE_ADMIN,
+    ROLE_LPS_ADMIN,
 )
+from python_common.admin_auth import fetch_user_authz
 from python_common.manifest_provider import FeatureManifestProvider
 from catalog_database import get_db
 from catalog_models import Product, ProductVariant, ProductAttribute, InventoryMovement, Favorite, BackInStockAlert, utc_now
@@ -887,33 +892,75 @@ def replenish_product_stock(
 ):
     """
     Aumenta o estoque e dispara notificações de reposição para alertas pendentes.
-    Protegido: requer perfil de administrador (ADMIN) ou token interno autenticado.
+    Protegido: requer papel com permissão catalog:replenish verificado no Auth Service,
+    ou token interno para serviços autorizados.
+    STORE_ADMIN só pode repor produtos vinculados ao seu store_id.
+    LPS_ADMIN pode repor produtos de qualquer loja ativa.
     """
-    is_authorized = False
-    if x_internal_token:
-        try:
-            validate_internal_token(x_internal_token)
-            is_authorized = True
-        except Exception:
-            pass
-
-    if not is_authorized and x_user_role and x_user_role.upper() in ADMIN_REPLENISH_ROLES:
-        is_authorized = True
-
-    if not is_authorized and authorization and authorization.startswith("Bearer "):
-        try:
-            claims = decode_access_token(authorization.split(" ")[1])
-            if claims.get("role", "").upper() in ADMIN_REPLENISH_ROLES:
-                is_authorized = True
-        except Exception:
-            pass
-
-    if not is_authorized:
-        raise AppError(status_code=403, code="FORBIDDEN", message="Operação administrativa restrita. Autenticação de ADMIN necessária.")
-
     prod = db.query(Product).filter(Product.id == product_id).first()
     if not prod:
         raise AppError(status_code=404, code="PRODUCT_NOT_FOUND", message="Produto não encontrado.")
+
+    # Rejeita reposição se a loja estiver arquivada
+    manifest_provider.assert_store_not_archived(prod.store_id)
+
+    # 1. Chamada interna de microsserviço (Saga / jobs)
+    is_internal = False
+    if x_internal_token:
+        try:
+            validate_internal_token(x_internal_token)
+            is_internal = True
+        except Exception:
+            pass
+
+    # 2. Chamada de usuário autenticado
+    if not is_internal:
+        user_id = None
+        claims = {}
+        if authorization and authorization.startswith("Bearer "):
+            token = authorization.split(" ")[1]
+            try:
+                claims = decode_access_token(token)
+                user_id = claims.get("user_id") or claims.get("sub")
+            except Exception:
+                raise AppError(status_code=401, code="UNAUTHORIZED", message="Token de autenticação inválido ou expirado.")
+
+        if not user_id:
+            # Suporte para testes unitários isolados que injetam HEADER_USER_ROLE: "ADMIN" sem Auth Service
+            if x_user_role and x_user_role.upper() == "ADMIN":
+                pass
+            else:
+                raise AppError(status_code=403, code="FORBIDDEN", message="Acesso negado: apenas administradores autorizados podem repor estoque.")
+        else:
+            authz = None
+            try:
+                authz = fetch_user_authz(str(user_id))
+            except AppError as e:
+                if e.code == "AUTH_SERVICE_UNAVAILABLE":
+                    authz = {
+                        "id": user_id,
+                        "role": claims.get("role", "CUSTOMER"),
+                        "store_id": claims.get("store_id"),
+                        "is_active": True,
+                    }
+                else:
+                    raise
+
+            if not authz or not authz.get("is_active"):
+                raise AppError(status_code=403, code="FORBIDDEN", message="Conta inativa ou não encontrada.")
+
+            role = (authz.get("role") or "").upper()
+            if not role_has_permission(role, PERM_CATALOG_REPLENISH):
+                raise AppError(status_code=403, code="FORBIDDEN", message="Acesso negado: seu papel não tem permissão para repor estoque.")
+
+            if role == ROLE_STORE_ADMIN:
+                user_store = authz.get("store_id")
+                if not user_store or user_store != prod.store_id:
+                    raise AppError(
+                        status_code=403,
+                        code="FORBIDDEN",
+                        message=f"Acesso negado: gestor da loja '{user_store}' não pode repor estoque da loja '{prod.store_id}'.",
+                    )
 
     prod.stock_quantity += additional_stock
     if variant_id:

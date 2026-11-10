@@ -22,6 +22,7 @@ class UserResponse(BaseModel):
     email: str
     name: str
     role: str
+    store_id: Optional[str] = None
     created_at: datetime
 
 
@@ -37,12 +38,14 @@ class AdminUserCreateRequest(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128, description="Senha inicial (mín. 8 caracteres)")
     role: str = Field(..., description="CUSTOMER, STORE_ADMIN ou LPS_ADMIN (escolha explícita)")
+    store_id: Optional[str] = Field(None, max_length=64, description="ID da loja vinculada (obrigatório se STORE_ADMIN)")
 
 
 class AdminUserUpdateRequest(BaseModel):
     name: Optional[str] = Field(None, min_length=2, max_length=255)
     email: Optional[EmailStr] = None
     role: Optional[str] = None
+    store_id: Optional[str] = Field(None, max_length=64, description="ID da loja vinculada")
     is_active: Optional[bool] = None
     new_password: Optional[str] = Field(None, min_length=8, max_length=128)
 

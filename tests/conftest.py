@@ -17,6 +17,7 @@ shipping_service_path = root_dir / "services" / "shipping-service" / "src"
 recommendation_service_path = root_dir / "services" / "recommendation-service" / "src"
 
 for p in [
+    str(root_dir),
     str(python_common_path),
     str(auth_service_path),
     str(gateway_path),

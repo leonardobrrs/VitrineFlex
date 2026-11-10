@@ -63,4 +63,9 @@ def require_permission(authorization: Optional[str], permission: str) -> dict[st
             code="FORBIDDEN",
             message="Operação restrita a administradores da plataforma.",
         )
-    return {"id": authz["id"], "email": authz.get("email"), "role": authz["role"]}
+    return {
+        "id": authz["id"],
+        "email": authz.get("email"),
+        "role": authz["role"],
+        "store_id": authz.get("store_id"),
+    }

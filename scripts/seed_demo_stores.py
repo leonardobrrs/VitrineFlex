@@ -18,11 +18,14 @@ from pathlib import Path
 # Adiciona diretórios do monorepo ao sys.path
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR / "packages" / "python-common"))
+sys.path.insert(0, str(BASE_DIR / "services" / "auth-service" / "src"))
 sys.path.insert(0, str(BASE_DIR / "services" / "lps-config-service" / "src"))
 sys.path.insert(0, str(BASE_DIR / "services" / "catalog-service" / "src"))
 sys.path.insert(0, str(BASE_DIR / "services" / "recommendation-service" / "src"))
 
 # Configurar caminhos dos bancos caso executado de raiz
+if "AUTH_DB_NAME" not in os.environ:
+    os.environ["AUTH_DB_NAME"] = "auth.db"
 if "LPS_DB_NAME" not in os.environ:
     os.environ["LPS_DB_NAME"] = "lps.db"
 if "CATALOG_DB_NAME" not in os.environ:
@@ -30,6 +33,9 @@ if "CATALOG_DB_NAME" not in os.environ:
 if "RECOMMENDATION_DB_NAME" not in os.environ:
     os.environ["RECOMMENDATION_DB_NAME"] = "recommendations.db"
 
+from auth_database import init_db as init_auth_db, SessionFactory as AuthSessionFactory
+from auth_models import User, UserPreference
+from python_common.security import hash_password, ROLE_CUSTOMER, ROLE_STORE_ADMIN, ROLE_LPS_ADMIN
 from lps_database import init_db as init_lps_db, SessionFactory as LpsSessionFactory
 from lps_models import Store, ProductManifest
 from catalog_database import init_db as init_catalog_db, SessionFactory as CatalogSessionFactory
@@ -1732,9 +1738,91 @@ def seed_demo_interactions():
             print("✓ Interações demonstrativas preliminares sincronizadas.")
 
 
+DEMO_ACCOUNTS = [
+    {
+        "name": "Cliente Demonstração",
+        "email": "cliente.demo@example.com",
+        "password": "ClienteDemo2026!",
+        "role": ROLE_CUSTOMER,
+        "store_id": None,
+    },
+    {
+        "name": "Gestor Vitrine Tech",
+        "email": "gerente.demo@example.com",
+        "password": "LojaDemo2026!",
+        "role": ROLE_STORE_ADMIN,
+        "store_id": "store-tech",
+    },
+    {
+        "name": "Administrador Plataforma",
+        "email": "admin.demo@example.com",
+        "password": "AdminDemo2026!",
+        "role": ROLE_LPS_ADMIN,
+        "store_id": None,
+    },
+]
+
+
+def seed_demo_users(reset_demo_users: bool = False) -> int:
+    """
+    Inicializa de forma idempotente as 3 contas de demonstração no Auth Service.
+    - Preserva contas existentes e senhas caso já cadastradas.
+    - Se --reset-demo-users for passado, reinicializa as credenciais das 3 contas.
+    - Bloqueia criação automática se ENVIRONMENT=production ou DISABLE_DEMO_USERS=true.
+    Retorna a quantidade de contas criadas.
+    """
+    env = os.environ.get("ENVIRONMENT", "").lower()
+    if env == "production":
+        print("⚠️ Ambiente de produção detectado (ENVIRONMENT=production). Criação de contas de demonstração ignorada por segurança.")
+        return 0
+
+    if os.environ.get("DISABLE_DEMO_USERS", "").lower() in ("true", "1", "yes"):
+        print("ℹ️ Criação de contas de demonstração desativada via DISABLE_DEMO_USERS.")
+        return 0
+
+    created_count = 0
+    init_auth_db()
+    with AuthSessionFactory() as session:
+        for acc in DEMO_ACCOUNTS:
+            email = acc["email"].lower()
+            existing = session.query(User).filter(User.email == email).first()
+            if existing:
+                if reset_demo_users:
+                    existing.password_hash = hash_password(acc["password"])
+                    existing.role = acc["role"]
+                    existing.store_id = acc["store_id"]
+                    existing.name = acc["name"]
+                    existing.is_active = True
+                    existing.deleted_at = None
+                    session.commit()
+                    print(f"🔄 Conta demo reinicializada: {acc['email']} ({acc['role']})")
+                else:
+                    print(f"✓ Conta demo já existente mantida: {acc['email']} ({existing.role})")
+            else:
+                user = User(
+                    email=email,
+                    name=acc["name"],
+                    password_hash=hash_password(acc["password"]),
+                    role=acc["role"],
+                    store_id=acc["store_id"],
+                    is_active=True,
+                )
+                session.add(user)
+                session.flush()
+                pref = session.query(UserPreference).filter(UserPreference.user_id == user.id).first()
+                if not pref:
+                    session.add(UserPreference(user_id=user.id, categories="[]"))
+                session.commit()
+                created_count += 1
+                print(f"✓ Conta demo criada com sucesso: {acc['email']} ({acc['role']}) [store_id={acc['store_id']}]")
+    return created_count
+
+
 if __name__ == "__main__":
+    reset_users = "--reset-demo-users" in sys.argv
     print("Iniciando carga e sincronização da Linha de Produto de Software VitrineFlex...")
     seed_stores_and_manifests()
     seed_catalog_products()
     seed_demo_interactions()
+    seed_demo_users(reset_demo_users=reset_users)
     print("Carga e derivação dos catálogos concluídas com êxito!")

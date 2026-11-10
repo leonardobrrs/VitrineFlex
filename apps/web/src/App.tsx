@@ -16,6 +16,9 @@ import { ConfiguratorPage } from './pages/ConfiguratorPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { AccessDeniedPage } from './pages/AccessDeniedPage';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { StoreInventoryPage } from './pages/store-admin/StoreInventoryPage';
 
 // Admin Platform Pages
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
@@ -46,26 +49,45 @@ export const App: React.FC = () => {
                 <Route path="/loja/:slug/produto/:productId" element={<ProductPage />} />
                 <Route path="/loja/:slug/checkout" element={<CheckoutPage />} />
                 <Route path="/loja/:slug/pedidos" element={<OrdersPage />} />
-                <Route path="/pedidos" element={<OrdersPage />} />
+                <Route path="/pedidos" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/cadastro" element={<RegisterPage />} />
-                <Route path="/perfil" element={<ProfilePage />} />
+                <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                <Route path="/acesso-negado" element={<AccessDeniedPage />} />
 
-                {/* Admin Platform Routes */}
-                <Route path="/admin" element={<AdminDashboardPage />} />
-                <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-                <Route path="/admin/lojas" element={<AdminStoresPage />} />
-                <Route path="/admin/configurador" element={<ConfiguratorPage />} />
-                <Route path="/admin/features" element={<AdminFeaturesPage />} />
-                <Route path="/admin/manifestos" element={<AdminManifestsPage />} />
-                <Route path="/admin/regras" element={<AdminVariabilityRulesPage />} />
-                <Route path="/admin/diagnostico" element={<DiagnosticsPage />} />
-                <Route path="/admin/microsservicos" element={<AdminMicroservicesPage />} />
-                <Route path="/admin/bancos" element={<AdminDatabasesPage />} />
-                <Route path="/admin/logs" element={<AdminLogsPage />} />
-                <Route path="/admin/usuarios" element={<AdminUsersPage />} />
-                <Route path="/admin/configuracoes" element={<AdminSettingsPage />} />
+                {/* Store Operator (STORE_ADMIN / LPS_ADMIN) Operational Routes */}
+                <Route
+                  path="/gestao-loja"
+                  element={
+                    <ProtectedRoute allowedRoles={['STORE_ADMIN', 'LPS_ADMIN']} requireStoreBinding>
+                      <StoreInventoryPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/gestao-loja/estoque"
+                  element={
+                    <ProtectedRoute allowedRoles={['STORE_ADMIN', 'LPS_ADMIN']} requireStoreBinding>
+                      <StoreInventoryPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Admin Platform Routes (LPS_ADMIN only) */}
+                <Route path="/admin" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
+                <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
+                <Route path="/admin/lojas" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><AdminStoresPage /></ProtectedRoute>} />
+                <Route path="/admin/configurador" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><ConfiguratorPage /></ProtectedRoute>} />
+                <Route path="/admin/features" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><AdminFeaturesPage /></ProtectedRoute>} />
+                <Route path="/admin/manifestos" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><AdminManifestsPage /></ProtectedRoute>} />
+                <Route path="/admin/regras" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><AdminVariabilityRulesPage /></ProtectedRoute>} />
+                <Route path="/admin/diagnostico" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><DiagnosticsPage /></ProtectedRoute>} />
+                <Route path="/admin/microsservicos" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><AdminMicroservicesPage /></ProtectedRoute>} />
+                <Route path="/admin/bancos" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><AdminDatabasesPage /></ProtectedRoute>} />
+                <Route path="/admin/logs" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><AdminLogsPage /></ProtectedRoute>} />
+                <Route path="/admin/usuarios" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><AdminUsersPage /></ProtectedRoute>} />
+                <Route path="/admin/configuracoes" element={<ProtectedRoute allowedRoles={['LPS_ADMIN']}><AdminSettingsPage /></ProtectedRoute>} />
 
                 {/* Fallback */}
                 <Route path="*" element={<NotFoundPage />} />

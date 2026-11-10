@@ -174,17 +174,22 @@ def create_user(
     if _email_taken(db, req.email):
         raise AppError(status_code=409, code="EMAIL_ALREADY_EXISTS", message="O e-mail informado já está cadastrado.")
 
+    store_id = None
+    if role == "STORE_ADMIN" and req.store_id and req.store_id.strip():
+        store_id = req.store_id.strip()
+
     user = User(
         email=str(req.email).lower(),
         name=req.name.strip(),
         role=role,
+        store_id=store_id,
         is_active=True,
         password_hash=hash_password(req.password),  # Argon2id
     )
     db.add(user)
     db.flush()
     db.add(UserPreference(user_id=user.id, categories="[]"))
-    _audit(db, actor, "USER_CREATED", user, {"email": user.email, "role": role})
+    _audit(db, actor, "USER_CREATED", user, {"email": user.email, "role": role, "store_id": store_id})
     db.commit()
     db.refresh(user)
     return user
@@ -222,6 +227,20 @@ def update_user(
                 _guard_last_admin(db, user)
             changes["role"] = {"from": user.role, "to": new_role}
             user.role = new_role
+            if new_role != "STORE_ADMIN" and user.store_id is not None:
+                changes["store_id"] = {"from": user.store_id, "to": None}
+                user.store_id = None
+
+    if req.store_id is not None:
+        cleaned_store = req.store_id.strip() if req.store_id else None
+        if user.role == "STORE_ADMIN":
+            if cleaned_store != user.store_id:
+                changes["store_id"] = {"from": user.store_id, "to": cleaned_store}
+                user.store_id = cleaned_store
+        else:
+            if user.store_id is not None:
+                changes["store_id"] = {"from": user.store_id, "to": None}
+                user.store_id = None
 
     if req.is_active is not None and req.is_active != bool(user.is_active):
         if not req.is_active:

@@ -13,6 +13,7 @@ def init_db() -> None:
     ensure_sqlite_columns(engine, "users", {
         "is_active": "BOOLEAN NOT NULL DEFAULT 1",
         "deleted_at": "DATETIME",
+        "store_id": "VARCHAR(64)",
     })
 
 

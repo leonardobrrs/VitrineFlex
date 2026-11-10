@@ -63,6 +63,7 @@ export interface User {
   email: string;
   name: string;
   role: string;
+  store_id?: string | null;
   created_at: string;
 }
 

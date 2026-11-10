@@ -24,6 +24,7 @@ interface AdminUser {
   email: string;
   name: string;
   role: 'CUSTOMER' | 'STORE_ADMIN' | 'LPS_ADMIN';
+  store_id?: string | null;
   is_active: boolean;
   is_deleted: boolean;
   created_at: string;
@@ -62,6 +63,7 @@ export const AdminUsersPage: React.FC = () => {
     email: '',
     password: '',
     role: 'CUSTOMER' as 'CUSTOMER' | 'STORE_ADMIN' | 'LPS_ADMIN',
+    store_id: 'store-tech',
   });
 
   // Form states - Edit
@@ -69,6 +71,7 @@ export const AdminUsersPage: React.FC = () => {
     name: '',
     email: '',
     role: 'CUSTOMER' as 'CUSTOMER' | 'STORE_ADMIN' | 'LPS_ADMIN',
+    store_id: '',
     is_active: true,
     password: '',
   });
@@ -124,14 +127,27 @@ export const AdminUsersPage: React.FC = () => {
       setError('A senha deve conter no mínimo 8 caracteres.');
       return;
     }
+    if (createForm.role === 'STORE_ADMIN' && !createForm.store_id) {
+      setError('Usuários com papel STORE_ADMIN devem estar associados a uma loja.');
+      return;
+    }
 
     setProcessing(true);
     setError(null);
     try {
-      await api.post('/api/v1/auth/admin/users', createForm);
+      const payload: any = {
+        name: createForm.name,
+        email: createForm.email,
+        password: createForm.password,
+        role: createForm.role,
+      };
+      if (createForm.role === 'STORE_ADMIN') {
+        payload.store_id = createForm.store_id;
+      }
+      await api.post('/api/v1/auth/admin/users', payload);
       setSuccessMsg(`Usuário "${createForm.name}" criado com sucesso com papel ${createForm.role}.`);
       setShowCreateModal(false);
-      setCreateForm({ name: '', email: '', password: '', role: 'CUSTOMER' });
+      setCreateForm({ name: '', email: '', password: '', role: 'CUSTOMER', store_id: 'store-tech' });
       await fetchUsers();
       await fetchAuditLogs();
     } catch (err: any) {
@@ -147,6 +163,7 @@ export const AdminUsersPage: React.FC = () => {
       name: target.name,
       email: target.email,
       role: target.role,
+      store_id: target.store_id || 'store-tech',
       is_active: target.is_active,
       password: '',
     });
@@ -157,6 +174,11 @@ export const AdminUsersPage: React.FC = () => {
     e.preventDefault();
     if (!userToEdit) return;
 
+    if (editForm.role === 'STORE_ADMIN' && !editForm.store_id) {
+      setError('Usuários com papel STORE_ADMIN devem estar associados a uma loja.');
+      return;
+    }
+
     setProcessing(true);
     setError(null);
     try {
@@ -166,6 +188,11 @@ export const AdminUsersPage: React.FC = () => {
         role: editForm.role,
         is_active: editForm.is_active,
       };
+      if (editForm.role === 'STORE_ADMIN') {
+        payload.store_id = editForm.store_id;
+      } else {
+        payload.store_id = null;
+      }
       if (editForm.password.trim()) {
         if (editForm.password.trim().length < 8) {
           setError('A nova senha deve ter no mínimo 8 caracteres.');
@@ -391,16 +418,23 @@ export const AdminUsersPage: React.FC = () => {
                         {u.email}
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                          u.role === 'LPS_ADMIN'
-                            ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                            : u.role === 'STORE_ADMIN'
-                            ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                            : 'bg-slate-100 text-slate-700 border border-slate-200'
-                        }`}>
-                          <Shield className="w-3 h-3" />
-                          <span>{u.role}</span>
-                        </span>
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                            u.role === 'LPS_ADMIN'
+                              ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                              : u.role === 'STORE_ADMIN'
+                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                              : 'bg-slate-100 text-slate-700 border border-slate-200'
+                          }`}>
+                            <Shield className="w-3 h-3" />
+                            <span>{u.role}</span>
+                          </span>
+                          {u.role === 'STORE_ADMIN' && u.store_id && (
+                            <span className="font-mono text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">
+                              Loja: {u.store_id}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3.5 px-4">
                         {u.is_deleted ? (
@@ -558,6 +592,26 @@ export const AdminUsersPage: React.FC = () => {
                   </select>
                 </div>
 
+                {createForm.role === 'STORE_ADMIN' && (
+                  <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-200 space-y-1.5 animate-fadeIn">
+                    <label className="font-bold text-blue-900 block text-[11px]">
+                      Loja Vinculada Obrigatória (STORE_ADMIN)
+                    </label>
+                    <select
+                      value={createForm.store_id}
+                      onChange={(e) => setCreateForm({ ...createForm, store_id: e.target.value })}
+                      className="w-full bg-white border border-blue-300 rounded-lg px-3 py-2 text-xs text-blue-950 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="store-fashion">Vitrine Moda (store-fashion)</option>
+                      <option value="store-tech">Vitrine Tech (store-tech)</option>
+                      <option value="store-books">Vitrine Books (store-books)</option>
+                    </select>
+                    <p className="text-[10px] text-blue-700">
+                      O gestor terá acesso restrito às operações e estoque da loja selecionada.
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                   <button
                     type="button"
@@ -634,6 +688,26 @@ export const AdminUsersPage: React.FC = () => {
                     <option value="LPS_ADMIN">LPS_ADMIN — Administrador da Plataforma</option>
                   </select>
                 </div>
+
+                {editForm.role === 'STORE_ADMIN' && (
+                  <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-200 space-y-1.5 animate-fadeIn">
+                    <label className="font-bold text-blue-900 block text-[11px]">
+                      Loja Vinculada Obrigatória (STORE_ADMIN)
+                    </label>
+                    <select
+                      value={editForm.store_id}
+                      onChange={(e) => setEditForm({ ...editForm, store_id: e.target.value })}
+                      className="w-full bg-white border border-blue-300 rounded-lg px-3 py-2 text-xs text-blue-950 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="store-fashion">Vitrine Moda (store-fashion)</option>
+                      <option value="store-tech">Vitrine Tech (store-tech)</option>
+                      <option value="store-books">Vitrine Books (store-books)</option>
+                    </select>
+                    <p className="text-[10px] text-blue-700">
+                      Alterar a loja associada restringe imediatamente a gestão operacional de estoque deste usuário.
+                    </p>
+                  </div>
+                )}
 
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">

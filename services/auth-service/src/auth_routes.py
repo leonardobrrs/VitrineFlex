@@ -105,7 +105,10 @@ def login_user(req: UserLoginRequest, db: Session = Depends(get_db)):
             message="Esta conta está desativada. Entre em contato com um administrador.",
         )
 
-    token = create_access_token(user_id=user.id, email=user.email, role=user.role)
+    extra = {}
+    if user.store_id:
+        extra["store_id"] = user.store_id
+    token = create_access_token(user_id=user.id, email=user.email, role=user.role, extra_claims=extra)
     return LoginResponse(access_token=token, token_type="bearer", user=user)
 
 
@@ -193,6 +196,7 @@ def get_user_authz_internal(
         "id": user.id,
         "email": user.email,
         "role": user.role,
+        "store_id": user.store_id,
         "is_active": bool(user.is_active) and user.deleted_at is None,
         "permissions": list(ROLE_PERMISSIONS.get(user.role, ())),
     }

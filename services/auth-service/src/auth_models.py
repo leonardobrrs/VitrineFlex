@@ -16,6 +16,7 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     name = Column(String(255), nullable=False)
     role = Column(String(32), nullable=False, default="CUSTOMER")
+    store_id = Column(String(64), nullable=True, index=True)  # Associação opcional a uma loja (exigido para STORE_ADMIN)
     is_active = Column(Boolean, nullable=False, default=True)
     deleted_at = Column(DateTime, nullable=True)  # exclusão lógica (preserva histórico de pedidos)
     created_at = Column(DateTime, default=utc_now, nullable=False)

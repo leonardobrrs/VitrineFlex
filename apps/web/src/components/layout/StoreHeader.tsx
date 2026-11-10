@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   Layers,
+  LogOut,
 } from 'lucide-react';
 
 export const StoreHeader: React.FC = () => {
@@ -75,6 +76,11 @@ export const StoreHeader: React.FC = () => {
     if (location.pathname === `/loja/${targetSlug}`) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   return (
@@ -156,14 +162,24 @@ export const StoreHeader: React.FC = () => {
                 )}
 
                 {user ? (
-                  <Link
-                    to="/perfil"
-                    className="flex items-center space-x-2 text-xs font-medium text-[#191918] px-2.5 py-1.5 rounded-full hover:bg-stone-200/50 transition"
-                    title={`Perfil de ${user.name}`}
-                  >
-                    <UserIcon className="w-5 h-5 stroke-[1.5]" />
-                    <span className="hidden md:inline max-w-[90px] truncate">{user.name.split(' ')[0]}</span>
-                  </Link>
+                  <div className="flex items-center space-x-1">
+                    <Link
+                      to="/perfil"
+                      className="flex items-center space-x-2 text-xs font-medium text-[#191918] px-2.5 py-1.5 rounded-full hover:bg-stone-200/50 transition"
+                      title={`Perfil de ${user.name}`}
+                    >
+                      <UserIcon className="w-5 h-5 stroke-[1.5]" />
+                      <span className="hidden md:inline max-w-[90px] truncate">{user.name.split(' ')[0]}</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="p-1.5 text-[#191918] hover:text-rose-700 hover:bg-stone-200/50 rounded-full transition"
+                      title="Sair da conta"
+                    >
+                      <LogOut className="w-4 h-4 stroke-[1.5]" />
+                    </button>
+                  </div>
                 ) : (
                   <Link
                     to="/login"
@@ -288,13 +304,23 @@ export const StoreHeader: React.FC = () => {
                 )}
 
                 {user ? (
-                  <Link
-                    to="/perfil"
-                    className="flex items-center space-x-1.5 text-xs font-semibold text-[#15181B] px-3 py-1.5 bg-[#F5F6F7] hover:bg-[#EEF0F2] rounded-md transition"
-                  >
-                    <UserIcon className="w-4 h-4 text-[#626B75]" />
-                    <span className="hidden sm:inline">{user.name.split(' ')[0]}</span>
-                  </Link>
+                  <div className="flex items-center space-x-1">
+                    <Link
+                      to="/perfil"
+                      className="flex items-center space-x-1.5 text-xs font-semibold text-[#15181B] px-3 py-1.5 bg-[#F5F6F7] hover:bg-[#EEF0F2] rounded-md transition"
+                    >
+                      <UserIcon className="w-4 h-4 text-[#626B75]" />
+                      <span className="hidden sm:inline">{user.name.split(' ')[0]}</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="p-1.5 text-[#626B75] hover:text-rose-600 hover:bg-slate-100 rounded-md transition"
+                      title="Sair da conta"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </button>
+                  </div>
                 ) : (
                   <Link
                     to="/login"
@@ -425,13 +451,23 @@ export const StoreHeader: React.FC = () => {
                 )}
 
                 {user ? (
-                  <Link
-                    to="/perfil"
-                    className="flex items-center space-x-2 text-xs text-white px-3 py-1.5 bg-emerald-900/50 hover:bg-emerald-900/80 rounded-full border border-emerald-700/50 transition"
-                  >
-                    <UserIcon className="w-4 h-4 text-emerald-200" />
-                    <span className="hidden sm:inline">{user.name.split(' ')[0]}</span>
-                  </Link>
+                  <div className="flex items-center space-x-1.5">
+                    <Link
+                      to="/perfil"
+                      className="flex items-center space-x-2 text-xs text-white px-3 py-1.5 bg-emerald-900/50 hover:bg-emerald-900/80 rounded-full border border-emerald-700/50 transition"
+                    >
+                      <UserIcon className="w-4 h-4 text-emerald-200" />
+                      <span className="hidden sm:inline">{user.name.split(' ')[0]}</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="p-1.5 text-emerald-100 hover:text-white hover:bg-emerald-900/60 rounded-full transition"
+                      title="Sair"
+                      aria-label="Sair da conta"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </button>
+                  </div>
                 ) : (
                   <Link
                     to="/login"
@@ -508,9 +544,19 @@ export const StoreHeader: React.FC = () => {
 
               <div className="flex items-center space-x-3">
                 {user ? (
-                  <Link to="/perfil" className="text-xs font-semibold text-slate-800 px-3 py-1.5 bg-slate-100 rounded-lg">
-                    {user.name}
-                  </Link>
+                  <div className="flex items-center space-x-2">
+                    <Link to="/perfil" className="text-xs font-semibold text-slate-800 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+                      {user.name}
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                      title="Sair"
+                      aria-label="Sair da conta"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </button>
+                  </div>
                 ) : (
                   <Link to="/login" className="text-xs font-semibold text-blue-600 px-3 py-1.5 hover:bg-slate-50 rounded-lg">
                     Entrar
@@ -663,8 +709,8 @@ export const StoreHeader: React.FC = () => {
                     </Link>
                     <button
                       onClick={() => {
-                        logout();
                         setMobileMenuOpen(false);
+                        handleLogout();
                       }}
                       className="text-xs font-semibold px-3 py-1.5 text-rose-600 hover:bg-rose-50 rounded"
                     >
