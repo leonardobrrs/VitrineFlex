@@ -6,7 +6,7 @@ O sistema instancia, configura e opera lojas virtuais altamente customizadas par
 
 ---
 
-## 🏬 Lojas Demonstrativas & Portal da LPS
+## Lojas Demonstrativas & Portal da LPS
 
 O projeto é entregue com um portal inicial neutro e três vitrines pré-configuradas derivadas da mesma linha de produto:
 
@@ -21,7 +21,7 @@ O projeto é entregue com um portal inicial neutro e três vitrines pré-configu
 
 ---
 
-## 🧩 Feature Model Formal (23 Features)
+## Feature Model Formal (23 Features)
 
 A variabilidade arquitetural e funcional da LPS é regida por um modelo formal de **23 features** com restrições CTC (*Cross-Tree Constraints*) validadas dinamicamente pelo **LPS Configuration Service**:
 
@@ -75,7 +75,7 @@ Cada loja instanciada possui um manifesto versionado (`ProductManifest`) persist
 
 ---
 
-## 🏛️ Arquitetura dos 9 Microsserviços & Portas
+## Arquitetura dos 9 Microsserviços & Portas
 
 O ecossistema é composto por **9 microsserviços autônomos** interconectados via HTTP/REST, protegidos por autenticação mútua e tokens internos:
 
@@ -122,7 +122,7 @@ O ecossistema é composto por **9 microsserviços autônomos** interconectados v
 
 ---
 
-## 🔒 Padrão Database-per-Service & Orquestração Saga
+## Padrão Database-per-Service & Orquestração Saga
 
 Para garantir desacoplamento estrito e alta coesão:
 1. **Database-per-Service:** Cada um dos 8 microsserviços com persistência possui seu próprio arquivo de banco de dados SQLite operando em modo **WAL (*Write-Ahead Logging*)**, localizado na pasta `data/`. Nenhum microsserviço acessa diretamente as tabelas de outro serviço.
@@ -134,7 +134,7 @@ Para garantir desacoplamento estrito e alta coesão:
 
 ---
 
-## 🛡️ Controle de Acesso Baseado em Papéis (RBAC)
+## Controle de Acesso Baseado em Papéis (RBAC)
 
 O sistema implementa uma camada dupla de segurança (Frontend Route Guards + Backend Endpoint Authorization) fundamentada em três papéis:
 
@@ -170,7 +170,7 @@ graph LR
 
 ---
 
-## 🔑 Contas de Demonstração
+## Contas de Demonstração
 
 Para facilitar a exploração e avaliação acadêmica, o script de inicialização do projeto cadastra automaticamente três contas representativas:
 
@@ -185,7 +185,7 @@ Para facilitar a exploração e avaliação acadêmica, o script de inicializaç
 
 ---
 
-## 🚪 Mecanismo de Logout Consistente
+## Mecanismo de Logout Consistente
 
 O VitrineFlex oferece encerramento de sessão explícito em todas as interfaces da aplicação:
 - **Nos Cabeçalhos das Lojas (Moda, Tech, Books e Portal Neutro):** Ícone de saída e opção "Sair" disponíveis tanto no menu desktop quanto no drawer de navegação mobile.
@@ -195,7 +195,7 @@ O VitrineFlex oferece encerramento de sessão explícito em todas as interfaces 
 
 ---
 
-## 📋 Pré-requisitos de Instalação
+## Pré-requisitos de Instalação
 
 - **Python 3.10 ou superior** (testado e homologado em Python 3.11, 3.12 e 3.15)
 - **Node.js 18 ou superior** (com `npm`)
@@ -203,7 +203,7 @@ O VitrineFlex oferece encerramento de sessão explícito em todas as interfaces 
 
 ---
 
-## 🚀 Como Executar o VitrineFlex Localmente
+## Como Executar o VitrineFlex Localmente
 
 Siga o passo a passo abaixo para rodar o ambiente completo no seu sistema operacional:
 
@@ -261,11 +261,11 @@ npm run dev
 ```
 
 Acesse a aplicação no navegador em:
-👉 **`http://localhost:5173`**
+ **`http://localhost:5173`**
 
 ---
 
-## 🧪 Validação & Testes Automatizados
+## Validação & Testes Automatizados
 
 O VitrineFlex conta com uma suíte abrangente de testes automatizados com **Pytest** cobrindo contratos de microsserviços, isolamento entre lojas, Saga de pedidos, controle de concorrência e RBAC:
 
@@ -308,7 +308,7 @@ tests\test_sprint3_saga_integration.py ......         [100%]
 
 ---
 
-## 📁 Estrutura do Repositório
+## Estrutura do Repositório
 
 ```
 VitrineFlex/
@@ -346,7 +346,7 @@ VitrineFlex/
 
 ---
 
-## ⚠️ Limitações Conhecidas e Escopo Acadêmico
+## Limitações Conhecidas e Escopo Acadêmico
 
 - **Persistência Baseada em SQLite Local:** Adequada e eficiente para desenvolvimento, testes e avaliação local da disciplina. Em um cenário corporativo de alta concorrência em produção multirregião, a arquitetura prevê migração de cada banco para instâncias dedicadas de PostgreSQL.
 - **Cache de Borda:** A resolução de manifestos da LPS utiliza cache local em memória nos processos com invalidação temporal. Em produção massiva, o Gateway integraria uma camada de cache distribuído em Redis.
@@ -354,7 +354,7 @@ VitrineFlex/
 
 ---
 
-## 👥 Autoria e Contexto Acadêmico
+## Autoria e Contexto Acadêmico
 
 Projeto desenvolvido no âmbito da disciplina:
 **Tópicos em Engenharia de Software: Projetando Linhas de Produção de Software (2026.2)**  
