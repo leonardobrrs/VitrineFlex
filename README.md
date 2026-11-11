@@ -195,20 +195,6 @@ O VitrineFlex oferece encerramento de sessão explícito em todas as interfaces 
 
 ---
 
-## 🖼️ Armazenamento e Otimização de Imagens Locais
-
-Todos os 75 produtos dos catálogos demonstrativos utilizam **imagens locais em formato WebP otimizado**, armazenadas diretamente no diretório do frontend:
-```
-apps/web/public/images/products/
-├── fashion/   # 25 imagens de vestuário e calçados
-├── tech/      # 25 imagens de hardware, smartphones e notebooks
-└── books/     # 25 capas de livros de literatura, técnica e clássicos
-```
-- **Disponibilidade 100% Offline:** Nenhuma imagem depende de serviços de mock externos ou CDNs sujeitas a bloqueios de rede.
-- **Componente Resiliente (`ProductImage`):** Caso qualquer arquivo apresente falha de carregamento, o componente exibe um placeholder SVG com gradiente específico do tema da loja e as iniciais do produto.
-
----
-
 ## 📋 Pré-requisitos de Instalação
 
 - **Python 3.10 ou superior** (testado e homologado em Python 3.11, 3.12 e 3.15)
