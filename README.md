@@ -279,15 +279,6 @@ Acesse a aplicação no navegador em:
 
 ---
 
-## 🐳 Observação Importante sobre Docker / Containers
-
-> [!IMPORTANT]
-> **Esclarecimento sobre a Execução dos Serviços:**
-> Embora o repositório forneça arquivos `Dockerfile` e `docker-compose.yml` de referência no diretório `infra/`, **o ambiente principal, homologado e recomendado para validação acadêmica do projeto é a execução local direta** através de ambiente virtual Python (`.venv`) e Node.js conforme documentado na seção anterior. 
-> A execução em containers não foi totalmente validada para todos os 9 microsserviços simultâneos com persistência WAL montada no Windows, podendo apresentar divergências de volumes de banco ou resolução de hosts.
-
----
-
 ## 🧪 Validação & Testes Automatizados
 
 O VitrineFlex conta com uma suíte abrangente de testes automatizados com **Pytest** cobrindo contratos de microsserviços, isolamento entre lojas, Saga de pedidos, controle de concorrência e RBAC:
@@ -382,4 +373,7 @@ VitrineFlex/
 Projeto desenvolvido no âmbito da disciplina:
 **Tópicos em Engenharia de Software: Projetando Linhas de Produção de Software (2026.2)**  
 **Instituto de Computação (IC) — Universidade Federal de Alagoas (UFAL)**  
-Autor: Leonardo Barbosa Ramos da Silva
+Autores: 
+    Leonardo Barbosa Barros
+    Luiz Guilherme Coutinho Braz
+    Morgana Cavalcante Batista
